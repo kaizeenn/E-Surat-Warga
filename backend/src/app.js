@@ -10,8 +10,24 @@ const path = require('path');
 const app = express();
 
 // ===== Global middleware =====
+// CORS: terima FRONTEND_URL (csv di .env) + default localhost dev port
+const envOrigins = (process.env.FRONTEND_URL || '')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean);
+const allowedOrigins = new Set([
+  ...envOrigins,
+  'http://localhost:3001',
+  'http://localhost:3003',
+  'http://127.0.0.1:3001',
+  'http://127.0.0.1:3003',
+]);
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3001',
+  origin: (origin, cb) => {
+    // izinkan tanpa origin (curl/Postman) & yang ada di whitelist
+    if (!origin || allowedOrigins.has(origin)) return cb(null, true);
+    return cb(new Error(`CORS: origin ${origin} tidak diizinkan`));
+  },
   credentials: true,
 }));
 app.use(express.json({ limit: '10mb' }));

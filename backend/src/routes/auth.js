@@ -19,12 +19,15 @@ const vLogin = [
   body('password').notEmpty().withMessage('Password wajib diisi'),
 ];
 
+// Login unified — sistem auto-detect role (admin atau warga)
+router.post('/login', vLogin, ctrl.login);
+
 // Warga
 router.post('/warga/register', vRegister, ctrl.registerWarga);
-router.post('/warga/login', vLogin, ctrl.loginWarga);
+router.post('/warga/login', vLogin, ctrl.loginWarga);  // legacy
 
 // Admin
-router.post('/admin/login', vLogin, ctrl.loginAdmin);
+router.post('/admin/login', vLogin, ctrl.loginAdmin);  // legacy
 
 // Shared (butuh JWT)
 router.get('/me', auth, ctrl.me);

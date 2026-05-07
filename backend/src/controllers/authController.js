@@ -94,7 +94,70 @@ exports.loginWarga = async (req, res, next) => {
   }
 };
 
-// ===== LOGIN ADMIN =====
+// ===== LOGIN UNIFIED =====
+// Cek di tabel admin dulu, lalu warga.
+// Sistem otomatis menentukan role berdasarkan email yang terdaftar.
+exports.login = async (req, res, next) => {
+  if (!handleValidation(req, res)) return;
+  try {
+    const { email, password } = req.body;
+
+    // 1. Coba cari di tabel admin
+    const admin = await Admin.scope('withPassword').findOne({ where: { email } });
+    if (admin) {
+      if (!(await admin.checkPassword(password))) {
+        return res.status(401).json({ success: false, message: 'Email atau password salah' });
+      }
+      if (!admin.aktif) {
+        return res.status(403).json({ success: false, message: 'Akun admin nonaktif' });
+      }
+      const token = signToken({ id: admin.id, type: 'admin', email: admin.email });
+      return res.json({
+        success: true,
+        message: 'Login berhasil',
+        data: {
+          token,
+          user: {
+            id: admin.id,
+            type: 'admin',
+            nama_lengkap: admin.nama_lengkap,
+            email: admin.email,
+            jabatan: admin.jabatan,
+          },
+        },
+      });
+    }
+
+    // 2. Coba cari di tabel warga
+    const warga = await Warga.scope('withPassword').findOne({ where: { email } });
+    if (warga) {
+      if (!(await warga.checkPassword(password))) {
+        return res.status(401).json({ success: false, message: 'Email atau password salah' });
+      }
+      const token = signToken({ id: warga.id, type: 'warga', email: warga.email });
+      return res.json({
+        success: true,
+        message: 'Login berhasil',
+        data: {
+          token,
+          user: {
+            id: warga.id,
+            type: 'warga',
+            nama_lengkap: warga.nama_lengkap,
+            email: warga.email,
+          },
+        },
+      });
+    }
+
+    // Email tidak ditemukan di kedua tabel — pesan generik (jangan bocorkan)
+    return res.status(401).json({ success: false, message: 'Email atau password salah' });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ===== LOGIN ADMIN (legacy, tetap dipertahankan) =====
 exports.loginAdmin = async (req, res, next) => {
   if (!handleValidation(req, res)) return;
   try {

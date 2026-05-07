@@ -31,6 +31,17 @@ export function AuthProvider({ children }) {
       .finally(() => setLoading(false));
   }, []);
 
+  /**
+   * Simpan token + user ke localStorage & state.
+   * Dipakai oleh halaman login terpadu.
+   */
+  const setSession = (token, u) => {
+    localStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(u));
+    setUser(u);
+    return u;
+  };
+
   const loginWarga = async (email, password) => {
     const res = await api.post('/auth/warga/login', { email, password });
     const { token, user: u } = res.data.data;
@@ -79,7 +90,7 @@ export function AuthProvider({ children }) {
   return (
     <AuthContext.Provider value={{
       user, loading,
-      loginWarga, loginAdmin, registerWarga, logout, refreshUser,
+      loginWarga, loginAdmin, registerWarga, logout, refreshUser, setSession,
       isWarga: user?.type === 'warga',
       isAdmin: user?.type === 'admin',
     }}>

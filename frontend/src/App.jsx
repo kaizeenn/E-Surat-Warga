@@ -4,7 +4,6 @@ import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 
-import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 
@@ -23,7 +22,10 @@ import TemplateForm from './pages/admin/TemplateForm';
 import Profil from './pages/Profil';
 
 /**
- * Redirect cerdas dari "/" jika sudah login.
+ * Root "/":
+ *   - Sudah login admin -> /admin
+ *   - Sudah login warga -> /warga
+ *   - Belum login       -> langsung tampilkan halaman login
  */
 function Root() {
   const { user, loading } = useAuth();
@@ -32,7 +34,7 @@ function Root() {
   }
   if (user?.type === 'admin') return <Navigate to="/admin" replace />;
   if (user?.type === 'warga') return <Navigate to="/warga" replace />;
-  return <Home />;
+  return <Login />;
 }
 
 export default function App() {
@@ -42,10 +44,10 @@ export default function App() {
       <Routes>
         {/* Public */}
         <Route path="/" element={<Root />} />
-        <Route path="/login" element={<Login />} />
+        <Route path="/login" element={<Navigate to="/" replace />} />
         <Route path="/register" element={<Register />} />
-        {/* Backward-compat: redirect /admin/login -> /login?as=admin */}
-        <Route path="/admin/login" element={<Navigate to="/login?as=admin" replace />} />
+        {/* Backward-compat: redirect /admin/login -> / */}
+        <Route path="/admin/login" element={<Navigate to="/" replace />} />
 
         {/* Warga (protected) */}
         <Route path="/warga" element={<ProtectedRoute role="warga"><WargaDashboard /></ProtectedRoute>} />

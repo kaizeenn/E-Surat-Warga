@@ -21,11 +21,24 @@ Authorization: Bearer <token>
 
 | Method | Endpoint | Auth | Deskripsi |
 |---|---|---|---|
+| POST | `/auth/login` | - | **Login terpadu** — sistem auto-detect role (warga/admin) |
 | POST | `/auth/warga/register` | - | Daftar akun warga |
-| POST | `/auth/warga/login` | - | Login warga |
-| POST | `/auth/admin/login` | - | Login admin |
+| POST | `/auth/warga/login` | - | Login warga (legacy) |
+| POST | `/auth/admin/login` | - | Login admin (legacy) |
 | GET  | `/auth/me` | JWT | Profil user yang login |
 | PUT  | `/auth/profil` | JWT | Update profil sendiri |
+
+### POST `/auth/login` (terpadu)
+```json
+{ "email": "...", "password": "..." }
+```
+
+Backend cek tabel `admin` dulu → jika tidak ada, cek tabel `warga`.
+Response `data.user.type` akan berisi `"admin"` atau `"warga"`,
+frontend tinggal arahkan ke dashboard yang sesuai.
+
+Response error: pesan generik `"Email atau password salah"`
+(tidak membocorkan apakah email exists).
 
 ### POST `/auth/warga/register`
 ```json

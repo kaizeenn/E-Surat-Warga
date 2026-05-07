@@ -31,12 +31,13 @@ npm run dev            # default: http://localhost:3002
 cd frontend
 cp .env.example .env
 npm install
-npm run dev            # http://localhost:3001
+npm run dev            # http://localhost:3003
 ```
 
-> **Catatan port:** Backend default di **3002** (port 3000 sering bentrok
-> dengan dev server lain). Ubah lewat `backend/.env` (`PORT=...`)
-> dan sesuaikan `frontend/.env` (`VITE_API_URL=http://localhost:PORT/api`).
+> **Catatan port:** Backend default di **3002**, frontend di **3003**.
+> Ubah lewat `backend/.env` (`PORT=...`) dan `frontend/vite.config.js`,
+> lalu sesuaikan `frontend/.env` (`VITE_API_URL`) dan
+> `backend/.env` (`FRONTEND_URL` untuk CORS).
 
 ## Kredensial Default (setelah seed)
 
@@ -101,16 +102,18 @@ surat-warga/
 
 ## Cara Pakai (User Flow)
 
-1. Buka `http://localhost:3001` → klik **Masuk** → pilih tab **Admin** → login dengan `atmin@rtrw.local` / `atmin123`.
-2. Buka tab incognito → di halaman beranda klik **Daftar Akun Warga** (`/register`).
-3. Setelah daftar, otomatis masuk dashboard warga → **Ajukan Surat**.
-4. Pilih jenis surat (Domisili / Tidak Mampu / Usaha), isi form, preview, kirim.
-5. Kembali ke admin → lihat permohonan masuk → klik **Review**.
-6. Klik **Approve & Terbitkan** → sistem auto-generate nomor + PDF.
-7. Warga refresh detail permohonan → tombol **Download PDF** muncul.
+1. Buka `http://localhost:3003` → langsung tampil halaman **Login**.
+2. Login admin: `atmin@rtrw.local` / `atmin123` → sistem otomatis arahkan ke dashboard admin.
+3. Buka tab incognito → di halaman login klik **Daftar Akun Warga** → isi form registrasi.
+4. Setelah daftar, otomatis masuk dashboard warga → **Ajukan Surat**.
+5. Pilih jenis surat (Domisili / Tidak Mampu / Usaha), isi form, preview, kirim.
+6. Kembali ke admin → lihat permohonan masuk → klik **Review**.
+7. Klik **Approve & Terbitkan** → sistem auto-generate nomor + PDF.
+8. Warga refresh detail permohonan → tombol **Download PDF** muncul.
 
-> **Login terpadu:** halaman `/login` memiliki tab Warga & Admin.
-> Akses langsung admin: `/login?as=admin`.
+> **Login terpadu:** satu halaman login untuk warga & admin.
+> Sistem otomatis mendeteksi role berdasarkan email yang terdaftar di
+> database (cek tabel `admin` dulu, lalu `warga`).
 > Registrasi (`/register`) **hanya untuk warga** — akun admin
 > dibuat oleh pengurus RT/RW lewat seed/database.
 
