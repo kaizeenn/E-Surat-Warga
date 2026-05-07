@@ -62,9 +62,40 @@ npm run dev            # http://localhost:3001
 
 ```
 surat-warga/
-├── backend/         # API Express + MySQL
-├── frontend/        # React SPA
-├── docs/            # ERD, Activity, Use Case
+├── backend/                       # API Express + MySQL
+│   ├── src/
+│   │   ├── config/                # Database config (Sequelize)
+│   │   ├── controllers/           # auth, surat, admin
+│   │   ├── middleware/            # JWT auth (warga/admin)
+│   │   ├── models/                # 5 model + asosiasi
+│   │   ├── routes/                # /api/auth, /api/surat, /api/admin
+│   │   ├── scripts/               # migrate.js, seed.js
+│   │   ├── services/              # pdfGenerator (Puppeteer)
+│   │   ├── templates/             # HTML template surat
+│   │   ├── utils/                 # jwt, nomorSurat helper
+│   │   ├── app.js                 # Express setup
+│   │   └── server.js              # Entry point
+│   ├── uploads/surat/             # Output PDF
+│   ├── .env.example
+│   └── package.json
+├── frontend/                      # React SPA + Vite
+│   ├── src/
+│   │   ├── components/            # Icon, Layout, ProtectedRoute, StatusBadge
+│   │   ├── context/               # AuthContext
+│   │   ├── pages/
+│   │   │   ├── warga/             # Dashboard, AjukanSurat, list, detail
+│   │   │   ├── admin/             # Dashboard, list, detail, Arsip
+│   │   │   └── Home, Login, Register
+│   │   ├── services/              # api.js (axios)
+│   │   ├── App.jsx
+│   │   ├── main.jsx
+│   │   └── index.css
+│   ├── public/
+│   ├── .env.example
+│   └── package.json
+├── docs/                          # ERD, Activity, Use Case, API
+├── start.sh                       # Helper run backend + frontend
+├── .gitignore
 └── README.md
 ```
 

@@ -17,6 +17,10 @@ import AdminDashboard from './pages/admin/Dashboard';
 import AdminPermohonanList from './pages/admin/PermohonanList';
 import AdminPermohonanDetail from './pages/admin/PermohonanDetail';
 import Arsip from './pages/admin/Arsip';
+import TemplateList from './pages/admin/TemplateList';
+import TemplateForm from './pages/admin/TemplateForm';
+
+import Profil from './pages/Profil';
 
 /**
  * Redirect cerdas dari "/" jika sudah login.
@@ -47,12 +51,17 @@ export default function App() {
         <Route path="/warga/ajukan" element={<ProtectedRoute role="warga"><AjukanSurat /></ProtectedRoute>} />
         <Route path="/warga/permohonan" element={<ProtectedRoute role="warga"><WargaPermohonanList /></ProtectedRoute>} />
         <Route path="/warga/permohonan/:id" element={<ProtectedRoute role="warga"><WargaPermohonanDetail /></ProtectedRoute>} />
+        <Route path="/warga/profil" element={<ProtectedRoute role="warga"><Profil /></ProtectedRoute>} />
 
         {/* Admin (protected) */}
         <Route path="/admin" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
         <Route path="/admin/permohonan" element={<ProtectedRoute role="admin"><AdminPermohonanList /></ProtectedRoute>} />
         <Route path="/admin/permohonan/:id" element={<ProtectedRoute role="admin"><AdminPermohonanDetail /></ProtectedRoute>} />
         <Route path="/admin/arsip" element={<ProtectedRoute role="admin"><Arsip /></ProtectedRoute>} />
+        <Route path="/admin/template" element={<ProtectedRoute role="admin"><TemplateList /></ProtectedRoute>} />
+        <Route path="/admin/template/baru" element={<ProtectedRoute role="admin"><TemplateForm /></ProtectedRoute>} />
+        <Route path="/admin/template/:id/edit" element={<ProtectedRoute role="admin"><TemplateForm /></ProtectedRoute>} />
+        <Route path="/admin/profil" element={<ProtectedRoute role="admin"><Profil /></ProtectedRoute>} />
 
         {/* 404 */}
         <Route path="*" element={

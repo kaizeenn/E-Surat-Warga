@@ -83,7 +83,7 @@ Response sukses:
 
 ---
 
-## Admin
+## Admin — Permohonan
 
 | Method | Endpoint | Auth | Deskripsi |
 |---|---|---|---|
@@ -93,6 +93,37 @@ Response sukses:
 | PATCH | `/admin/permohonan/:id/tolak` | Admin | Tolak (body: `{ catatan }`) |
 | GET   | `/admin/arsip` | Admin | Semua surat selesai |
 | GET   | `/admin/stats` | Admin | Statistik dashboard |
+
+## Admin — Kelola Template
+
+| Method | Endpoint | Auth | Deskripsi |
+|---|---|---|---|
+| GET    | `/admin/template` | Admin | List semua template (aktif/nonaktif) |
+| GET    | `/admin/template/files` | Admin | List file HTML di `src/templates/` |
+| GET    | `/admin/template/:id` | Admin | Detail template |
+| POST   | `/admin/template` | Admin | Buat template baru |
+| PUT    | `/admin/template/:id` | Admin | Update template |
+| PATCH  | `/admin/template/:id/toggle` | Admin | Toggle aktif/nonaktif |
+| DELETE | `/admin/template/:id` | Admin | Hapus (ditolak jika sudah dipakai permohonan) |
+
+### POST `/admin/template`
+```json
+{
+  "kode": "PINDAH",
+  "nama": "Surat Keterangan Pindah",
+  "deskripsi": "Untuk warga yang akan pindah domisili",
+  "file_template": "pindah.html",
+  "aktif": true,
+  "fields": [
+    { "name": "alamatTujuan", "label": "Alamat Tujuan", "type": "textarea", "required": true },
+    { "name": "alasanPindah", "label": "Alasan Pindah", "type": "text", "required": true }
+  ]
+}
+```
+
+> **Catatan:** `file_template` harus sudah ada di `backend/src/templates/`.
+> Field `name` di-uppercase saat replace placeholder di HTML
+> (contoh: `alamatTujuan` → `{{ALAMATTUJUAN}}`).
 
 ### PATCH `/admin/permohonan/:id/approve`
 Tidak butuh body. Response:

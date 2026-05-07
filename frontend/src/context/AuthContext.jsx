@@ -58,6 +58,18 @@ export function AuthProvider({ children }) {
     return u;
   };
 
+  const refreshUser = async () => {
+    try {
+      const res = await api.get('/auth/me');
+      const fresh = { type: res.data.data.type, ...res.data.data.user };
+      setUser(fresh);
+      localStorage.setItem('user', JSON.stringify(fresh));
+      return fresh;
+    } catch (err) {
+      // ignore
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
@@ -67,7 +79,7 @@ export function AuthProvider({ children }) {
   return (
     <AuthContext.Provider value={{
       user, loading,
-      loginWarga, loginAdmin, registerWarga, logout,
+      loginWarga, loginAdmin, registerWarga, logout, refreshUser,
       isWarga: user?.type === 'warga',
       isAdmin: user?.type === 'admin',
     }}>

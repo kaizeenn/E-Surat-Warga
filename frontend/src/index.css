@@ -19,6 +19,9 @@
     @apply btn bg-warga-600 text-white hover:bg-warga-700;
   }
   .btn-danger {
+    @apply btn bg-red-600 text-white hover:bg-red-700;
+  }
+  .btn-admin-primary {
     @apply btn bg-admin-600 text-white hover:bg-admin-700;
   }
   .btn-secondary {

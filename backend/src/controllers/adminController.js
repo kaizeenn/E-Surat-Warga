@@ -185,6 +185,133 @@ exports.arsip = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
+// ===== KELOLA TEMPLATE SURAT =====
+
+exports.listTemplate = async (req, res, next) => {
+  try {
+    const list = await TemplateSurat.findAll({ order: [['id', 'ASC']] });
+    res.json({ success: true, data: list });
+  } catch (err) { next(err); }
+};
+
+exports.detailTemplate = async (req, res, next) => {
+  try {
+    const t = await TemplateSurat.findByPk(req.params.id);
+    if (!t) return res.status(404).json({ success: false, message: 'Template tidak ditemukan' });
+    res.json({ success: true, data: t });
+  } catch (err) { next(err); }
+};
+
+exports.createTemplate = async (req, res, next) => {
+  try {
+    const { kode, nama, deskripsi, fields, file_template, aktif } = req.body;
+
+    if (!kode || !nama || !file_template) {
+      return res.status(400).json({
+        success: false,
+        message: 'Kode, nama, dan file_template wajib diisi',
+      });
+    }
+
+    const exists = await TemplateSurat.findOne({ where: { kode: kode.toUpperCase() } });
+    if (exists) {
+      return res.status(409).json({ success: false, message: 'Kode template sudah ada' });
+    }
+
+    // Validasi file template ada di disk
+    const path = require('path');
+    const fs = require('fs');
+    const fullPath = path.join(__dirname, '../templates', file_template);
+    if (!fs.existsSync(fullPath)) {
+      return res.status(400).json({
+        success: false,
+        message: `File template '${file_template}' tidak ditemukan di src/templates/`,
+      });
+    }
+
+    const created = await TemplateSurat.create({
+      kode: kode.toUpperCase(),
+      nama,
+      deskripsi,
+      fields: Array.isArray(fields) ? fields : [],
+      file_template,
+      aktif: aktif !== undefined ? aktif : true,
+    });
+    res.status(201).json({ success: true, message: 'Template dibuat', data: created });
+  } catch (err) { next(err); }
+};
+
+exports.updateTemplate = async (req, res, next) => {
+  try {
+    const t = await TemplateSurat.findByPk(req.params.id);
+    if (!t) return res.status(404).json({ success: false, message: 'Template tidak ditemukan' });
+
+    const allowed = ['nama', 'deskripsi', 'fields', 'aktif', 'file_template'];
+    const update = {};
+    for (const k of allowed) {
+      if (req.body[k] !== undefined) update[k] = req.body[k];
+    }
+
+    if (update.file_template) {
+      const path = require('path');
+      const fs = require('fs');
+      const fullPath = path.join(__dirname, '../templates', update.file_template);
+      if (!fs.existsSync(fullPath)) {
+        return res.status(400).json({
+          success: false,
+          message: `File template '${update.file_template}' tidak ditemukan`,
+        });
+      }
+    }
+
+    await t.update(update);
+    res.json({ success: true, message: 'Template diperbarui', data: t });
+  } catch (err) { next(err); }
+};
+
+exports.deleteTemplate = async (req, res, next) => {
+  try {
+    const t = await TemplateSurat.findByPk(req.params.id);
+    if (!t) return res.status(404).json({ success: false, message: 'Template tidak ditemukan' });
+
+    // Cek apakah sudah dipakai
+    const used = await PermohonanSurat.count({ where: { template_id: t.id } });
+    if (used > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `Template ini sudah dipakai oleh ${used} permohonan. Nonaktifkan saja, jangan dihapus.`,
+      });
+    }
+
+    await t.destroy();
+    res.json({ success: true, message: 'Template dihapus' });
+  } catch (err) { next(err); }
+};
+
+exports.toggleTemplate = async (req, res, next) => {
+  try {
+    const t = await TemplateSurat.findByPk(req.params.id);
+    if (!t) return res.status(404).json({ success: false, message: 'Template tidak ditemukan' });
+    await t.update({ aktif: !t.aktif });
+    res.json({
+      success: true,
+      message: t.aktif ? 'Template diaktifkan' : 'Template dinonaktifkan',
+      data: t,
+    });
+  } catch (err) { next(err); }
+};
+
+exports.listFileTemplate = async (req, res, next) => {
+  try {
+    const path = require('path');
+    const fs = require('fs');
+    const dir = path.join(__dirname, '../templates');
+    const files = fs.readdirSync(dir)
+      .filter(f => f.endsWith('.html') && !f.startsWith('_'));
+    res.json({ success: true, data: files });
+  } catch (err) { next(err); }
+};
+
 // ===== Statistik dashboard =====
 exports.stats = async (req, res, next) => {
   try {
