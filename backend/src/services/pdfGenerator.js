@@ -40,6 +40,19 @@ function fillTemplate(html, vars) {
   });
 }
 
+async function buildTtdImageHtml(ttdPath) {
+  if (!ttdPath || !ttdPath.startsWith('/uploads/ttd/')) return '<div class="ttd-space"></div>';
+  try {
+    const fullPath = path.join(__dirname, '..', '..', ttdPath.replace(/^\/uploads\//, 'uploads/'));
+    const buffer = await fs.readFile(fullPath);
+    const ext = path.extname(fullPath).slice(1).toLowerCase();
+    const mime = ext === 'jpg' ? 'jpeg' : ext;
+    return `<img class="ttd-img" src="data:image/${mime};base64,${buffer.toString('base64')}" alt="TTD Digital">`;
+  } catch {
+    return '<div class="ttd-space"></div>';
+  }
+}
+
 /**
  * Generate PDF dari permohonan.
  * permohonan = instance PermohonanSurat (sudah include template + warga + admin).
@@ -57,6 +70,7 @@ async function generate(permohonan) {
   // 1. Load template HTML
   const tplPath = path.join(TEMPLATE_DIR, template.file_template);
   let html = await fs.readFile(tplPath, 'utf8');
+  const ttdImageHtml = await buildTtdImageHtml(admin?.ttd_image);
 
   // 2. Build variabel
   const vars = {
@@ -89,6 +103,7 @@ async function generate(permohonan) {
     // Data admin (penandatangan)
     ADMIN_NAMA: admin?.nama_lengkap || '-',
     ADMIN_JABATAN: admin?.jabatan || '-',
+    ADMIN_TTD_IMG: ttdImageHtml,
 
     // Data tambahan dari template
     ...Object.fromEntries(

@@ -32,6 +32,8 @@ Thumbs.db
 # ===== Backend =====
 backend/uploads/surat/*
 !backend/uploads/surat/.gitkeep
+backend/uploads/ttd/*
+!backend/uploads/ttd/.gitkeep
 
 # ===== Frontend =====
 frontend/dist/

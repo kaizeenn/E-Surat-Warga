@@ -77,6 +77,7 @@ surat-warga/
 │   │   ├── app.js                 # Express setup
 │   │   └── server.js              # Entry point
 │   ├── uploads/surat/             # Output PDF
+│   ├── uploads/ttd/               # File TTD digital admin
 │   ├── .env.example
 │   └── package.json
 ├── frontend/                      # React SPA + Vite
@@ -85,8 +86,8 @@ surat-warga/
 │   │   ├── context/               # AuthContext
 │   │   ├── pages/
 │   │   │   ├── warga/             # Dashboard, AjukanSurat, list, detail
-│   │   │   ├── admin/             # Dashboard, list, detail, Arsip
-│   │   │   └── Home, Login, Register
+│   │   │   ├── admin/             # Dashboard, list, detail, Arsip, Template
+│   │   │   └── Login, Register, Profil
 │   │   ├── services/              # api.js (axios)
 │   │   ├── App.jsx
 │   │   ├── main.jsx
@@ -107,9 +108,10 @@ surat-warga/
 3. Buka tab incognito → di halaman login klik **Daftar Akun Warga** → isi form registrasi.
 4. Setelah daftar, otomatis masuk dashboard warga → **Ajukan Surat**.
 5. Pilih jenis surat (Domisili / Tidak Mampu / Usaha), isi form, preview, kirim.
-6. Kembali ke admin → lihat permohonan masuk → klik **Review**.
-7. Klik **Approve & Terbitkan** → sistem auto-generate nomor + PDF.
-8. Warga refresh detail permohonan → tombol **Download PDF** muncul.
+6. Opsional: admin buka **Profil → TTD Digital** untuk upload tanda tangan.
+7. Kembali ke admin → lihat permohonan masuk → klik **Review**.
+8. Klik **Approve & Terbitkan** → sistem auto-generate nomor + PDF.
+9. Warga refresh detail permohonan → tombol **Download PDF** muncul.
 
 > **Login terpadu:** satu halaman login untuk warga & admin.
 > Sistem otomatis mendeteksi role berdasarkan email yang terdaftar di

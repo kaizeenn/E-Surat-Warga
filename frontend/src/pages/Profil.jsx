@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import api from '../services/api';
+import api, { API_URL } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import WargaLayout from './warga/WargaLayout';
 import AdminLayout from './admin/AdminLayout';
@@ -16,6 +16,8 @@ export default function Profil() {
   const [tab, setTab] = useState('data');
   const [form, setForm] = useState({});
   const [loading, setLoading] = useState(false);
+  const [ttdLoading, setTtdLoading] = useState(false);
+  const [ttdImage, setTtdImage] = useState('');
 
   // Password form
   const [pw, setPw] = useState({ password: '', confirm: '' });
@@ -40,6 +42,7 @@ export default function Profil() {
         // admin only
         jabatan: u.jabatan || '',
       });
+      setTtdImage(u.ttd_image || '');
     });
   }, []);
 
@@ -87,8 +90,56 @@ export default function Profil() {
     }
   };
 
+  const uploadTtd = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      toast.error('File harus berupa gambar');
+      e.target.value = '';
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Ukuran file maksimal 2MB');
+      e.target.value = '';
+      return;
+    }
+
+    setTtdLoading(true);
+    try {
+      const fd = new FormData();
+      fd.append('ttd', file);
+      const res = await api.post('/admin/profil/ttd', fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      setTtdImage(res.data.data.ttd_image || '');
+      await refreshUser?.();
+      toast.success('TTD digital berhasil diupload');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Gagal upload TTD');
+    } finally {
+      setTtdLoading(false);
+      e.target.value = '';
+    }
+  };
+
+  const deleteTtd = async () => {
+    if (!confirm('Hapus TTD digital saat ini?')) return;
+    setTtdLoading(true);
+    try {
+      await api.delete('/admin/profil/ttd');
+      setTtdImage('');
+      await refreshUser?.();
+      toast.success('TTD digital dihapus');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Gagal hapus TTD');
+    } finally {
+      setTtdLoading(false);
+    }
+  };
+
   const Wrapper = isAdmin ? AdminLayout : WargaLayout;
   const accent = isAdmin ? 'admin' : 'warga';
+  const fileBase = API_URL.replace(/\/api\/?$/, '');
 
   const content = (
     <>
@@ -117,6 +168,17 @@ export default function Profil() {
           <Icon name="shield" className="w-4 h-4 inline mr-1.5" />
           Password
         </button>
+        {isAdmin && (
+          <button
+            onClick={() => setTab('ttd')}
+            className={`px-4 py-1.5 text-sm rounded-md transition-colors ${
+              tab === 'ttd' ? 'bg-white shadow-sm font-medium' : 'text-slate-600'
+            }`}
+          >
+            <Icon name="document" className="w-4 h-4 inline mr-1.5" />
+            TTD Digital
+          </button>
+        )}
       </div>
 
       {tab === 'data' && (
@@ -200,6 +262,72 @@ export default function Profil() {
             </button>
           </div>
         </form>
+      )}
+
+      {isAdmin && tab === 'ttd' && (
+        <div className="card max-w-2xl">
+          <div className="mb-5">
+            <h2 className="text-lg font-semibold">TTD Digital Admin</h2>
+            <p className="text-sm text-slate-500 mt-1">
+              Upload gambar tanda tangan agar otomatis tampil pada PDF surat yang Anda approve.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+            <div>
+              <label className="block text-sm font-medium mb-2">Preview TTD Saat Ini</label>
+              <div className="h-40 border border-dashed border-slate-300 rounded-xl bg-slate-50 flex items-center justify-center overflow-hidden">
+                {ttdImage ? (
+                  <img
+                    src={`${fileBase}${ttdImage}`}
+                    alt="TTD Digital"
+                    className="max-h-32 max-w-full object-contain"
+                  />
+                ) : (
+                  <div className="text-center text-slate-400 text-sm px-4">
+                    Belum ada TTD digital.
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Upload Gambar TTD</label>
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/jpg,image/webp"
+                  onChange={uploadTtd}
+                  disabled={ttdLoading}
+                  className="block w-full text-sm text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-admin-50 file:text-admin-700 hover:file:bg-admin-100"
+                />
+                <p className="text-xs text-slate-400 mt-2">
+                  Format: PNG/JPG/WEBP. Maksimal 2MB. Disarankan gambar transparan dengan background putih/bening.
+                </p>
+              </div>
+
+              <div className="flex gap-2">
+                {ttdImage && (
+                  <button
+                    type="button"
+                    onClick={deleteTtd}
+                    disabled={ttdLoading}
+                    className="btn-danger"
+                  >
+                    {ttdLoading ? 'Memproses...' : 'Hapus TTD'}
+                  </button>
+                )}
+              </div>
+
+              <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
+                <Icon name="info" className="w-5 h-5 shrink-0 mt-0.5" />
+                <span>
+                  TTD akan dipakai untuk surat baru setelah proses approve. PDF lama tidak berubah otomatis.
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );

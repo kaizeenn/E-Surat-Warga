@@ -107,6 +107,38 @@ Response sukses:
 | GET   | `/admin/arsip` | Admin | Semua surat selesai |
 | GET   | `/admin/stats` | Admin | Statistik dashboard |
 
+## Admin — TTD Digital
+
+| Method | Endpoint | Auth | Deskripsi |
+|---|---|---|---|
+| POST | `/admin/profil/ttd` | Admin | Upload TTD digital (`multipart/form-data`, field: `ttd`) |
+| DELETE | `/admin/profil/ttd` | Admin | Hapus TTD digital |
+
+### POST `/admin/profil/ttd`
+
+Field form-data:
+
+| Field | Tipe | Wajib | Catatan |
+|---|---|---|---|
+| `ttd` | file | Ya | PNG/JPG/JPEG/WEBP, maksimal 2MB |
+
+Response sukses mengembalikan data admin terbaru dengan `ttd_image`, contoh:
+
+```json
+{
+  "success": true,
+  "message": "TTD digital berhasil diupload",
+  "data": {
+    "id": 1,
+    "nama_lengkap": "Atmin Sistem",
+    "ttd_image": "/uploads/ttd/ttd-admin-1-xxx.png"
+  }
+}
+```
+
+TTD otomatis disisipkan ke PDF surat baru saat admin melakukan approve.
+PDF lama tidak berubah otomatis.
+
 ## Admin — Kelola Template
 
 | Method | Endpoint | Auth | Deskripsi |

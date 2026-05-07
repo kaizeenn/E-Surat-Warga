@@ -22,7 +22,9 @@
   .ttd-table { width: 100%; border-collapse: collapse; margin-top: 40px; }
   .ttd-table td { vertical-align: top; padding: 4px; }
   .ttd-table td.kanan { text-align: center; width: 45%; padding-left: 5%; }
-  .nama-ttd { margin-top: 80px; font-weight: bold; text-decoration: underline; }
+  .ttd-img { display: block; max-width: 150px; max-height: 70px; object-fit: contain; margin: 14px auto 4px auto; }
+  .ttd-space { height: 82px; }
+  .nama-ttd { margin-top: 4px; font-weight: bold; text-decoration: underline; }
 </style>
 </head>
 <body>
@@ -65,6 +67,7 @@
     <td class="kanan">
       {{KOTA}}, {{TANGGAL_TERBIT}}<br>
       {{ADMIN_JABATAN}} {{RT_NOMOR}}/{{RW_NOMOR}}
+      {{ADMIN_TTD_IMG}}
       <div class="nama-ttd">{{ADMIN_NAMA}}</div>
     </td>
   </tr>

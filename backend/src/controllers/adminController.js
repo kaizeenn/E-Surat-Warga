@@ -1,6 +1,8 @@
 /**
  * Controller untuk endpoint admin (review, approve, tolak, arsip, stats).
  */
+const fs = require('fs');
+const path = require('path');
 const { Op } = require('sequelize');
 const { sequelize, PermohonanSurat, TemplateSurat, Warga, Admin, NomorSurat } = require('../models');
 const { formatNomorSurat } = require('../utils/nomorSurat');
@@ -182,6 +184,48 @@ exports.arsip = async (req, res, next) => {
       order: [['tanggal_approve', 'DESC']],
     });
     res.json({ success: true, data: list });
+  } catch (err) { next(err); }
+};
+
+// ===== TTD DIGITAL ADMIN =====
+exports.uploadTtd = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'File TTD wajib diupload' });
+    }
+
+    const oldPath = req.user.ttd_image;
+    const newPath = `/uploads/ttd/${req.file.filename}`;
+
+    await req.user.update({ ttd_image: newPath });
+
+    // Hapus file lama jika ada agar storage tidak menumpuk
+    if (oldPath && oldPath.startsWith('/uploads/ttd/')) {
+      const oldFull = path.join(__dirname, '..', '..', oldPath.replace(/^\/uploads\//, 'uploads/'));
+      fs.unlink(oldFull, () => {});
+    }
+
+    const fresh = await Admin.findByPk(req.user.id);
+    res.json({
+      success: true,
+      message: 'TTD digital berhasil diupload',
+      data: fresh,
+    });
+  } catch (err) { next(err); }
+};
+
+exports.deleteTtd = async (req, res, next) => {
+  try {
+    const oldPath = req.user.ttd_image;
+    await req.user.update({ ttd_image: null });
+
+    if (oldPath && oldPath.startsWith('/uploads/ttd/')) {
+      const oldFull = path.join(__dirname, '..', '..', oldPath.replace(/^\/uploads\//, 'uploads/'));
+      fs.unlink(oldFull, () => {});
+    }
+
+    const fresh = await Admin.findByPk(req.user.id);
+    res.json({ success: true, message: 'TTD digital dihapus', data: fresh });
   } catch (err) { next(err); }
 };
 
