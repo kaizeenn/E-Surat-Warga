@@ -1,0 +1,43 @@
+# ===== Dependencies =====
+node_modules/
+.pnp
+.pnp.js
+
+# ===== Env =====
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# ===== Build output =====
+dist/
+build/
+.cache/
+
+# ===== Logs =====
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ===== Editor =====
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ===== Backend =====
+backend/uploads/surat/*
+!backend/uploads/surat/.gitkeep
+
+# ===== Frontend =====
+frontend/dist/
+frontend/.vite/
+
+# ===== Misc =====
+*.tsbuildinfo
+coverage/
+.nyc_output/
