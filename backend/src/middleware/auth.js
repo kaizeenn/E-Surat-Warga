@@ -48,6 +48,7 @@ async function auth(req, res, next) {
 
     req.user = user;
     req.userType = decoded.type;
+    req.tokenPayload = decoded; // simpan payload supaya endpoint /session bisa baca exp/iat
     next();
   } catch (err) {
     if (err.name === 'TokenExpiredError') {

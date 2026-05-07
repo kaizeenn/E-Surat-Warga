@@ -201,6 +201,30 @@ exports.me = async (req, res) => {
   });
 };
 
+// ===== SESSION INFO =====
+// Mengembalikan info sesi dari payload JWT yang sudah diverifikasi oleh middleware auth.
+// req.tokenPayload diset di middleware auth setelah verifyToken berhasil.
+exports.session = async (req, res) => {
+  const payload = req.tokenPayload || {};
+  const nowSec = Math.floor(Date.now() / 1000);
+  const exp = payload.exp || null;
+  const iat = payload.iat || null;
+  const remainingSec = exp ? Math.max(0, exp - nowSec) : null;
+  res.json({
+    success: true,
+    data: {
+      type: req.userType,
+      user_id: req.user?.id,
+      iat,
+      exp,
+      now: nowSec,
+      remaining_sec: remainingSec,
+      // dalam ms agar gampang dipakai setTimeout di frontend
+      remaining_ms: remainingSec !== null ? remainingSec * 1000 : null,
+    },
+  });
+};
+
 // ===== UPDATE PROFIL =====
 exports.updateProfil = async (req, res, next) => {
   try {

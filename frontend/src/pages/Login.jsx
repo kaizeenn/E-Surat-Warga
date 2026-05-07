@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -12,9 +12,17 @@ import Icon from '../components/Icon';
 export default function Login() {
   const { setSession } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const expired = searchParams.get('expired') === '1';
+
+  useEffect(() => {
+    if (expired) {
+      toast('Sesi Anda telah berakhir. Silakan login kembali.', { icon: '⏱️' });
+    }
+  }, [expired]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -57,6 +65,16 @@ export default function Login() {
             Masuk ke akun Anda untuk melanjutkan.
           </p>
         </div>
+
+        {expired && (
+          <div className="mb-4 p-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-sm flex gap-2">
+            <Icon name="clock" className="w-5 h-5 shrink-0 mt-0.5" />
+            <div>
+              <div className="font-semibold">Sesi telah berakhir</div>
+              <div className="text-xs mt-0.5">Demi keamanan akun, silakan login ulang untuk melanjutkan.</div>
+            </div>
+          </div>
+        )}
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">

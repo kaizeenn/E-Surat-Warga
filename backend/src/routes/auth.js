@@ -31,6 +31,7 @@ router.post('/admin/login', vLogin, ctrl.loginAdmin);  // legacy
 
 // Shared (butuh JWT)
 router.get('/me', auth, ctrl.me);
+router.get('/session', auth, ctrl.session);
 router.put('/profil', auth, ctrl.updateProfil);
 
 module.exports = router;

@@ -26,6 +26,7 @@ Authorization: Bearer <token>
 | POST | `/auth/warga/login` | - | Login warga (legacy) |
 | POST | `/auth/admin/login` | - | Login admin (legacy) |
 | GET  | `/auth/me` | JWT | Profil user yang login |
+| GET  | `/auth/session` | JWT | Info sesi (iat, exp, sisa waktu) |
 | PUT  | `/auth/profil` | JWT | Update profil sendiri |
 
 ### POST `/auth/login` (terpadu)
@@ -39,6 +40,29 @@ frontend tinggal arahkan ke dashboard yang sesuai.
 
 Response error: pesan generik `"Email atau password salah"`
 (tidak membocorkan apakah email exists).
+
+### GET `/auth/session`
+Dipakai frontend untuk **kelola sesi login**: dipanggil setelah refresh
+halaman, saat tab idle lama, atau saat user membuka popover sesi.
+
+Response:
+```json
+{
+  "success": true,
+  "data": {
+    "type": "admin",
+    "user_id": 1,
+    "iat": 1778169216,
+    "exp": 1778774016,
+    "now": 1778169216,
+    "remaining_sec": 604800,
+    "remaining_ms": 604800000
+  }
+}
+```
+
+Kalau token sudah expired atau dicabut, server membalas `401` dan
+frontend otomatis menghapus session lalu redirect ke `/login?expired=1`.
 
 ### POST `/auth/warga/register`
 ```json

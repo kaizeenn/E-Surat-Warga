@@ -1,15 +1,30 @@
+import { useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import Icon from './Icon';
+import SessionBadge from './SessionBadge';
 
 /**
  * Layout dasar dengan sidebar navigasi.
  * variant: 'warga' | 'admin'
  */
 export default function Layout({ children, variant = 'warga', menuItems = [] }) {
-  const { user, logout } = useAuth();
+  const { user, logout, warned, remainingMs } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const warnShownRef = useRef(false);
+
+  // Tampilkan toast peringatan sekali ketika sesi tinggal <= 5 menit
+  useEffect(() => {
+    if (warned && !warnShownRef.current && remainingMs > 0) {
+      warnShownRef.current = true;
+      toast(
+        'Sesi Anda akan berakhir dalam waktu kurang dari 5 menit. Simpan pekerjaan Anda dan login ulang setelah keluar.',
+        { duration: 8000, icon: '⚠️' }
+      );
+    }
+  }, [warned, remainingMs]);
 
   const handleLogout = () => {
     logout();
@@ -49,11 +64,12 @@ export default function Layout({ children, variant = 'warga', menuItems = [] }) 
           })}
         </nav>
 
-        <div className="p-3 border-t border-white/10">
+        <div className="p-3 border-t border-white/10 space-y-1">
           <div className="px-3 py-2 text-sm">
             <div className="font-medium truncate">{user?.nama_lengkap}</div>
             <div className="text-white/60 text-xs truncate">{user?.email}</div>
           </div>
+          <SessionBadge variant="sidebar" />
           <button
             onClick={handleLogout}
             className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm hover:bg-white/10 transition-colors"
