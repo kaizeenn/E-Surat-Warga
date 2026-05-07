@@ -101,14 +101,18 @@ surat-warga/
 
 ## Cara Pakai (User Flow)
 
-1. Buka `http://localhost:3001` → klik "Masuk sebagai Admin".
-2. Login dengan `atmin@rtrw.local` / `atmin123`.
-3. Buka tab incognito → daftar akun warga baru di `/register`.
-4. Setelah daftar otomatis masuk dashboard warga → "Ajukan Surat".
-5. Pilih jenis surat (Domisili / Tidak Mampu / Usaha), isi form, preview, kirim.
-6. Kembali ke admin → lihat permohonan masuk → klik Review.
-7. Klik "Approve & Terbitkan" → sistem auto-generate nomor + PDF.
-8. Warga refresh detail permohonan → tombol Download PDF muncul.
+1. Buka `http://localhost:3001` → klik **Masuk** → pilih tab **Admin** → login dengan `atmin@rtrw.local` / `atmin123`.
+2. Buka tab incognito → di halaman beranda klik **Daftar Akun Warga** (`/register`).
+3. Setelah daftar, otomatis masuk dashboard warga → **Ajukan Surat**.
+4. Pilih jenis surat (Domisili / Tidak Mampu / Usaha), isi form, preview, kirim.
+5. Kembali ke admin → lihat permohonan masuk → klik **Review**.
+6. Klik **Approve & Terbitkan** → sistem auto-generate nomor + PDF.
+7. Warga refresh detail permohonan → tombol **Download PDF** muncul.
+
+> **Login terpadu:** halaman `/login` memiliki tab Warga & Admin.
+> Akses langsung admin: `/login?as=admin`.
+> Registrasi (`/register`) **hanya untuk warga** — akun admin
+> dibuat oleh pengurus RT/RW lewat seed/database.
 
 ## Lisensi
 

@@ -17,7 +17,7 @@ export default function ProtectedRoute({ children, role }) {
   }
 
   if (!user) {
-    const to = role === 'admin' ? '/admin/login' : '/login';
+    const to = role === 'admin' ? '/login?as=admin' : '/login';
     return <Navigate to={to} state={{ from: location }} replace />;
   }
 

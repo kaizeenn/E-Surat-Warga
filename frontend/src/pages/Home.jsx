@@ -16,18 +16,18 @@ export default function Home() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Link to="/login" className="btn-primary">
             <Icon name="user" className="w-5 h-5 mr-2" />
-            Masuk sebagai Warga
+            Masuk
           </Link>
-          <Link to="/admin/login" className="btn-danger">
-            <Icon name="shield" className="w-5 h-5 mr-2" />
-            Masuk sebagai Admin
+          <Link to="/register" className="btn-secondary">
+            <Icon name="plus" className="w-5 h-5 mr-2" />
+            Daftar Akun Warga
           </Link>
         </div>
 
-        <p className="mt-6 text-sm text-slate-500">
-          Belum punya akun?{' '}
-          <Link to="/register" className="text-warga-600 hover:underline font-medium">
-            Daftar di sini
+        <p className="mt-6 text-xs text-slate-400">
+          Admin RT/RW?{' '}
+          <Link to="/login?as=admin" className="text-slate-500 hover:text-admin-600 hover:underline">
+            Login di sini
           </Link>
         </p>
       </div>

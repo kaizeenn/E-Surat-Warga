@@ -42,9 +42,10 @@ export default function App() {
       <Routes>
         {/* Public */}
         <Route path="/" element={<Root />} />
-        <Route path="/login" element={<Login variant="warga" />} />
+        <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/admin/login" element={<Login variant="admin" />} />
+        {/* Backward-compat: redirect /admin/login -> /login?as=admin */}
+        <Route path="/admin/login" element={<Navigate to="/login?as=admin" replace />} />
 
         {/* Warga (protected) */}
         <Route path="/warga" element={<ProtectedRoute role="warga"><WargaDashboard /></ProtectedRoute>} />
