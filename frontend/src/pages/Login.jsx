@@ -39,7 +39,14 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-slate-50 to-warga-50">
-      <div className="card max-w-md w-full">
+      <div className="max-w-md w-full">
+        <div className="mb-3">
+          <Link to="/" className="inline-flex items-center text-sm text-slate-500 hover:text-warga-700">
+            <Icon name="arrowLeft" className="w-4 h-4 mr-1.5" />
+            Kembali ke beranda
+          </Link>
+        </div>
+        <div className="card">
         {/* Header */}
         <div className="text-center mb-6">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-warga-100 rounded-full mb-3">
@@ -97,6 +104,7 @@ export default function Login() {
           <p className="mt-2 text-xs text-slate-400">
             Akun admin dibuat oleh pengurus desa/RT/RW.
           </p>
+        </div>
         </div>
       </div>
     </div>

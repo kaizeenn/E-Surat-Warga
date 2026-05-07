@@ -23,11 +23,11 @@ api.interceptors.response.use(
   (err) => {
     if (err.response?.status === 401) {
       const path = window.location.pathname;
-      // Jangan redirect kalau memang sedang di halaman publik (/, /register)
-      if (path !== '/' && !path.startsWith('/register')) {
+      // Jangan redirect kalau memang sedang di halaman publik (/, /login, /register)
+      if (path !== '/' && !path.startsWith('/login') && !path.startsWith('/register')) {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        window.location.href = '/';
+        window.location.href = '/login';
       }
     }
     return Promise.reject(err);
