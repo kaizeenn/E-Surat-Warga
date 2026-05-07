@@ -51,8 +51,8 @@ export default function Landing() {
 
             <p className="mt-5 text-slate-600 text-lg leading-relaxed">
               e-Surat Desa mempermudah warga mengajukan surat keterangan
-              dan membantu pengurus desa/RT/RW mengelola permohonan secara
-              digital — cepat, rapi, dan terdokumentasi.
+              secara online — cepat, rapi, dan langsung jadi PDF resmi
+              tanpa perlu datang ke kantor.
             </p>
 
             <div className="mt-7 flex flex-wrap gap-3">
@@ -140,7 +140,7 @@ export default function Landing() {
             <div className="text-xs font-semibold tracking-wider text-warga-600 uppercase">Fitur Utama</div>
             <h2 className="mt-2 text-3xl font-bold">Semua yang dibutuhkan dalam satu aplikasi</h2>
             <p className="mt-3 text-slate-600">
-              Dari pengajuan surat oleh warga sampai penerbitan PDF resmi oleh admin.
+              Semua kemudahan untuk warga dalam mengurus surat keterangan.
             </p>
           </div>
 
@@ -157,23 +157,23 @@ export default function Landing() {
             />
             <Feature
               icon="signature"
-              title="TTD Digital Admin"
-              desc="Tanda tangan digital admin otomatis disisipkan pada PDF yang disetujui."
+              title="Tanda Tangan Resmi"
+              desc="Setiap surat yang disetujui dilengkapi tanda tangan resmi pada PDF."
             />
             <Feature
-              icon="chartBar"
-              title="Dashboard Admin"
-              desc="Ringkasan statistik permohonan, status, dan aktivitas warga secara real-time."
+              icon="clock"
+              title="Pantau Status"
+              desc="Lihat status permohonan kapan saja: diajukan, disetujui, atau ditolak."
             />
             <Feature
               icon="archive"
-              title="Arsip Tertata"
-              desc="Setiap surat tersimpan rapi dengan nomor urut, jenis, dan tanggal terbit."
+              title="Riwayat Lengkap"
+              desc="Semua surat yang pernah Anda ajukan tersimpan rapi dan bisa diunduh ulang."
             />
             <Feature
               icon="shield"
-              title="Aman & Terpisah"
-              desc="Autentikasi JWT, password ter-hash, role admin & warga dipisah tegas."
+              title="Aman & Terjaga"
+              desc="Data pribadi terlindungi dengan autentikasi dan password yang ter-enkripsi."
             />
           </div>
         </div>
@@ -192,7 +192,7 @@ export default function Landing() {
         <ol className="grid md:grid-cols-4 gap-6">
           <Step n="1" title="Daftar Akun" desc="Warga registrasi dengan NIK & data diri singkat." />
           <Step n="2" title="Ajukan Surat" desc="Pilih jenis surat, isi keperluan & data tambahan." />
-          <Step n="3" title="Disetujui Admin" desc="Admin meninjau dan approve permohonan warga." />
+          <Step n="3" title="Permohonan Disetujui" desc="Permohonan ditinjau lalu disetujui oleh pengurus." />
           <Step n="4" title="Unduh PDF" desc="Surat resmi siap cetak langsung dari dashboard." />
         </ol>
       </section>
@@ -204,7 +204,7 @@ export default function Landing() {
             <div className="text-xs font-semibold tracking-wider text-warga-600 uppercase">Jenis Surat</div>
             <h2 className="mt-2 text-3xl font-bold">Template yang siap dipakai</h2>
             <p className="mt-3 text-slate-600">
-              Admin juga bisa menambah template surat baru sesuai kebutuhan desa.
+              Beragam jenis surat keterangan tersedia untuk kebutuhan warga sehari-hari.
             </p>
           </div>
 
@@ -239,8 +239,8 @@ export default function Landing() {
               Siap mulai menggunakan e-Surat Desa?
             </h2>
             <p className="mt-3 text-white/90">
-              Masuk dengan akun warga atau admin dan rasakan kemudahan
-              mengurus surat secara digital.
+              Masuk ke akun Anda dan rasakan kemudahan mengurus
+              surat secara digital.
             </p>
 
             <div className="mt-7 flex flex-wrap gap-3">
