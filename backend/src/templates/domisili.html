@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Surat Keterangan Domisili</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: 'Times New Roman', Times, serif; font-size: 12pt; color: #000; margin: 0; padding: 0; }
+  .kop { border-bottom: 3px double #000; padding-bottom: 10px; margin-bottom: 20px; text-align: center; }
+  .kop h1 { font-size: 16pt; margin: 0; text-transform: uppercase; letter-spacing: 1px; }
+  .kop h2 { font-size: 13pt; margin: 4px 0 0 0; text-transform: uppercase; }
+  .kop p { font-size: 10pt; margin: 2px 0 0 0; }
+  .judul-surat { text-align: center; margin: 24px 0 4px 0; }
+  .judul-surat h3 { font-size: 13pt; text-decoration: underline; text-transform: uppercase; margin: 0; }
+  .nomor { text-align: center; margin-bottom: 24px; font-size: 11pt; }
+  .isi { text-align: justify; line-height: 1.7; }
+  .isi p { margin: 0 0 12px 0; text-indent: 30px; }
+  table.identitas { margin: 12px 0 12px 30px; border-collapse: collapse; }
+  table.identitas td { padding: 3px 12px 3px 0; vertical-align: top; }
+  table.identitas td.label { width: 160px; }
+  table.identitas td.sep { width: 20px; }
+  .ttd-table { width: 100%; border-collapse: collapse; margin-top: 40px; }
+  .ttd-table td { vertical-align: top; padding: 4px; }
+  .ttd-table td.kanan { text-align: center; width: 45%; padding-left: 5%; }
+  .nama-ttd { margin-top: 80px; font-weight: bold; text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<div class="kop">
+  <h1>Pemerintah {{KOTA}}</h1>
+  <h2>Kelurahan {{KELURAHAN}} &mdash; Kecamatan {{KECAMATAN}}</h2>
+  <h2>Rukun Tetangga {{RT_NOMOR}} / Rukun Warga {{RW_NOMOR}}</h2>
+  <p>Provinsi {{PROVINSI}}</p>
+</div>
+
+<div class="judul-surat">
+  <h3>Surat Keterangan Domisili</h3>
+</div>
+<div class="nomor">Nomor: {{NOMOR_SURAT}}</div>
+
+<div class="isi">
+  <p>Yang bertanda tangan di bawah ini, {{ADMIN_JABATAN}} {{RT_NOMOR}}/{{RW_NOMOR}} Kelurahan {{KELURAHAN}}, Kecamatan {{KECAMATAN}}, dengan ini menerangkan bahwa:</p>
+
+  <table class="identitas">
+    <tr><td class="label">Nama</td><td class="sep">:</td><td>{{NAMA}}</td></tr>
+    <tr><td class="label">NIK</td><td class="sep">:</td><td>{{NIK}}</td></tr>
+    <tr><td class="label">Tempat/Tgl Lahir</td><td class="sep">:</td><td>{{TTL}}</td></tr>
+    <tr><td class="label">Jenis Kelamin</td><td class="sep">:</td><td>{{JENIS_KELAMIN}}</td></tr>
+    <tr><td class="label">Agama</td><td class="sep">:</td><td>{{AGAMA}}</td></tr>
+    <tr><td class="label">Pekerjaan</td><td class="sep">:</td><td>{{PEKERJAAN}}</td></tr>
+    <tr><td class="label">Alamat</td><td class="sep">:</td><td>{{ALAMAT}}</td></tr>
+  </table>
+
+  <p>Adalah benar warga RT {{RT_NOMOR}} RW {{RW_NOMOR}} Kelurahan {{KELURAHAN}}, Kecamatan {{KECAMATAN}}, {{KOTA}}, dan berdomisili di alamat tersebut di atas.</p>
+
+  <p>Surat keterangan ini dibuat untuk keperluan: <b>{{KEPERLUAN}}</b>{{TUJUANINSTANSI_LINE}}.</p>
+
+  <p>Demikian surat keterangan ini dibuat dengan sebenarnya untuk dapat dipergunakan sebagaimana mestinya.</p>
+</div>
+
+<table class="ttd-table">
+  <tr>
+    <td></td>
+    <td class="kanan">
+      {{KOTA}}, {{TANGGAL_TERBIT}}<br>
+      {{ADMIN_JABATAN}} {{RT_NOMOR}}/{{RW_NOMOR}}
+      <div class="nama-ttd">{{ADMIN_NAMA}}</div>
+    </td>
+  </tr>
+</table>
+
+</body>
+</html>

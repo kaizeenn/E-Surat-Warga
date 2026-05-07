@@ -34,10 +34,10 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// ===== Routes (akan ditambah di step berikutnya) =====
-// app.use('/api/auth', require('./routes/auth'));
-// app.use('/api/surat', require('./routes/surat'));
-// app.use('/api/admin', require('./routes/admin'));
+// ===== Routes =====
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/surat', require('./routes/surat'));
+app.use('/api/admin', require('./routes/admin'));
 
 // ===== 404 handler =====
 app.use((req, res) => {

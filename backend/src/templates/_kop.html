@@ -1,0 +1,98 @@
+<!-- Komponen kop surat — di-include manual via concat di template lain -->
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 12pt;
+    color: #000;
+    margin: 0;
+    padding: 0;
+  }
+  .kop {
+    border-bottom: 3px double #000;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  .kop h1 {
+    font-size: 16pt;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .kop h2 {
+    font-size: 13pt;
+    margin: 4px 0 0 0;
+    text-transform: uppercase;
+  }
+  .kop p {
+    font-size: 10pt;
+    margin: 2px 0 0 0;
+  }
+  .judul-surat {
+    text-align: center;
+    margin: 24px 0 8px 0;
+  }
+  .judul-surat h3 {
+    font-size: 13pt;
+    text-decoration: underline;
+    text-transform: uppercase;
+    margin: 0;
+  }
+  .nomor {
+    text-align: center;
+    margin-bottom: 24px;
+    font-size: 11pt;
+  }
+  .isi {
+    text-align: justify;
+    line-height: 1.7;
+  }
+  .isi p {
+    margin: 0 0 12px 0;
+    text-indent: 30px;
+  }
+  table.identitas {
+    margin: 12px 0 12px 30px;
+    border-collapse: collapse;
+  }
+  table.identitas td {
+    padding: 3px 12px 3px 0;
+    vertical-align: top;
+  }
+  table.identitas td.label {
+    width: 160px;
+  }
+  table.identitas td.sep {
+    width: 20px;
+  }
+  .ttd {
+    margin-top: 40px;
+    width: 100%;
+  }
+  .ttd-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .ttd-table td {
+    vertical-align: top;
+    padding: 4px;
+  }
+  .ttd-table td.kanan {
+    text-align: center;
+    width: 40%;
+    padding-left: 10%;
+  }
+  .nama-ttd {
+    margin-top: 80px;
+    font-weight: bold;
+    text-decoration: underline;
+  }
+</style>
+
+<div class="kop">
+  <h1>Pemerintah {{KOTA}}</h1>
+  <h2>Kelurahan {{KELURAHAN}} — Kecamatan {{KECAMATAN}}</h2>
+  <h2>Rukun Tetangga {{RT_NOMOR}} / Rukun Warga {{RW_NOMOR}}</h2>
+  <p>Provinsi {{PROVINSI}}</p>
+</div>

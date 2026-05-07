@@ -4,6 +4,14 @@ export default {
     './index.html',
     './src/**/*.{js,jsx,ts,tsx}',
   ],
+  safelist: [
+    // dynamic class lewat template literal di Login.jsx
+    'bg-warga-50', 'bg-warga-100', 'bg-warga-600',
+    'bg-admin-50', 'bg-admin-100', 'bg-admin-600', 'bg-admin-700',
+    'text-warga-600', 'text-admin-600',
+    'from-warga-50', 'from-admin-50',
+    'to-warga-50', 'to-admin-50',
+  ],
   theme: {
     extend: {
       colors: {
