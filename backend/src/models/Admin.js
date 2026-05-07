@@ -1,5 +1,5 @@
 /**
- * Model Admin — akun pengurus RT/RW.
+ * Model Admin — akun pengurus desa/RT/RW.
  * Tabel terpisah dari Warga karena kolom & hak akses berbeda.
  */
 const { DataTypes } = require('sequelize');

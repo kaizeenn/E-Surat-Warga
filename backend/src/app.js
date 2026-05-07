@@ -44,7 +44,7 @@ app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 app.get('/api/health', (req, res) => {
   res.json({
     success: true,
-    message: 'Surat Warga API is running',
+    message: 'e-Surat Desa API is running',
     timestamp: new Date().toISOString(),
     env: process.env.NODE_ENV,
   });

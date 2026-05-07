@@ -1,7 +1,7 @@
 {
-  "name": "surat-warga-backend",
+  "name": "e-surat-desa-backend",
   "version": "1.0.0",
-  "description": "Backend API untuk Generator Surat Warga RT/RW",
+  "description": "Backend API untuk e-Surat Desa",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",

@@ -1,6 +1,6 @@
-# Surat Warga — Generator Surat RT/RW
+# e-Surat Desa — Layanan Surat Digital
 
-Sistem web untuk warga mengajukan surat keterangan (domisili, tidak mampu, usaha, dll) secara online. Admin RT/RW review, approve, dan sistem generate PDF otomatis.
+Sistem web untuk warga mengajukan surat keterangan (domisili, tidak mampu, usaha, dll) secara online. Admin desa/RT/RW review, approve, dan sistem generate PDF otomatis.
 
 ## Quick Start
 
@@ -62,7 +62,7 @@ npm run dev            # http://localhost:3003
 ## Struktur Project
 
 ```
-surat-warga/
+surat-warga/                       # project e-Surat Desa
 ├── backend/                       # API Express + MySQL
 │   ├── src/
 │   │   ├── config/                # Database config (Sequelize)
@@ -117,7 +117,7 @@ surat-warga/
 > Sistem otomatis mendeteksi role berdasarkan email yang terdaftar di
 > database (cek tabel `admin` dulu, lalu `warga`).
 > Registrasi (`/register`) **hanya untuk warga** — akun admin
-> dibuat oleh pengurus RT/RW lewat seed/database.
+> dibuat oleh pengurus desa/RT/RW lewat seed/database.
 
 ## Lisensi
 

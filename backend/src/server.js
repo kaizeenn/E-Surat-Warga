@@ -21,7 +21,7 @@ const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => {
     console.log('');
     console.log('═══════════════════════════════════════════════════');
-    console.log(`  🚀 Surat Warga API`);
+    console.log(`  🚀 e-Surat Desa API`);
     console.log(`  📍 http://localhost:${PORT}`);
     console.log(`  🔧 Environment: ${process.env.NODE_ENV}`);
     console.log(`  ❤️  Health: http://localhost:${PORT}/api/health`);

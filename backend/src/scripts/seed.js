@@ -24,7 +24,7 @@ const TEMPLATES = [
   {
     kode: 'DOMISILI',
     nama: 'Surat Keterangan Domisili',
-    deskripsi: 'Bukti tempat tinggal warga di wilayah RT/RW.',
+    deskripsi: 'Bukti tempat tinggal warga di wilayah desa/RT/RW.',
     file_template: 'domisili.html',
     fields: [
       { name: 'tujuanInstansi', label: 'Tujuan Instansi/Pihak', type: 'text', required: true },
@@ -45,7 +45,7 @@ const TEMPLATES = [
   {
     kode: 'USAHA',
     nama: 'Surat Keterangan Usaha',
-    deskripsi: 'Bukti kepemilikan usaha warga di wilayah RT/RW.',
+    deskripsi: 'Bukti kepemilikan usaha warga di wilayah desa/RT/RW.',
     file_template: 'usaha.html',
     fields: [
       { name: 'namaUsaha', label: 'Nama Usaha', type: 'text', required: true },

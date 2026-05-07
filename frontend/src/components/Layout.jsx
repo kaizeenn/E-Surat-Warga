@@ -24,7 +24,7 @@ export default function Layout({ children, variant = 'warga', menuItems = [] }) 
       {/* Sidebar */}
       <aside className={`w-64 ${sidebarClass} text-white flex flex-col`}>
         <div className="p-6 border-b border-white/10">
-          <h1 className="font-bold text-lg leading-tight">Surat Warga</h1>
+          <h1 className="font-bold text-lg leading-tight">e-Surat Desa</h1>
           <p className="text-xs text-white/70 mt-1">
             {variant === 'admin' ? 'Panel Admin' : 'Layanan Warga'}
           </p>

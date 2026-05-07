@@ -10,7 +10,7 @@
 - `tempat_lahir`, `tanggal_lahir`, `jenis_kelamin`
 - `alamat`, `agama`, `pekerjaan`, `no_hp`
 
-### `admin` — akun pengurus RT/RW
+### `admin` — akun pengurus desa/RT/RW
 - `id` PK
 - `nama_lengkap`, `email` UK, `password` (bcrypt)
 - `jabatan` (Ketua RT, Sekretaris, dll)

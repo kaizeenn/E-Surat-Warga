@@ -5,7 +5,7 @@
 ## Aktor
 
 - **Warga** — pemohon surat
-- **Admin** — pengurus RT/RW
+- **Admin** — pengurus desa/RT/RW
 
 ## Use Cases (utama)
 

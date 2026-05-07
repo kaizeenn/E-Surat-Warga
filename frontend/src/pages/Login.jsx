@@ -45,7 +45,7 @@ export default function Login() {
           <div className="inline-flex items-center justify-center w-16 h-16 bg-warga-100 rounded-full mb-3">
             <Icon name="document" className="w-8 h-8 text-warga-600" />
           </div>
-          <h1 className="text-2xl font-bold">Surat Warga RT/RW</h1>
+          <h1 className="text-2xl font-bold">e-Surat Desa</h1>
           <p className="text-sm text-slate-500 mt-1">
             Masuk ke akun Anda untuk melanjutkan.
           </p>
@@ -95,7 +95,7 @@ export default function Login() {
             </Link>
           </p>
           <p className="mt-2 text-xs text-slate-400">
-            Akun admin dibuat oleh pengurus RT/RW.
+            Akun admin dibuat oleh pengurus desa/RT/RW.
           </p>
         </div>
       </div>
