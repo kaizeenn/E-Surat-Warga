@@ -23,3 +23,4 @@ router.get('/saya', authWarga, ctrl.permohonanSaya);
 router.get('/saya/:id', authWarga, ctrl.detailPermohonan);
 
 module.exports = router;
+  

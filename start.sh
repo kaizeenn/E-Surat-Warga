@@ -5,8 +5,8 @@
 set -e
 cd "$(dirname "$0")"
 
-echo "[start] Backend (npm run dev) -> http://localhost:3002"
-echo "[start] Frontend (npm run dev) -> http://localhost:3003"
+echo "[start] Backend (npm run dev) -> http://localhost:3000"
+echo "[start] Frontend (npm run dev) -> http://localhost:3001"
 echo "[start] Tekan Ctrl+C untuk stop keduanya."
 echo ""
 

@@ -6,7 +6,7 @@ import path from 'path';
 export default defineConfig({
   plugins: [react()],
   server: {
-    port: 3003,
+    port: 3001,
     host: true, // bisa diakses dari LAN
     open: false,
   },

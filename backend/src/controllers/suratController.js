@@ -20,7 +20,7 @@ function handleValidation(req, res) {
 // ===== List template surat aktif =====
 exports.listTemplate = async (req, res, next) => {
   try {
-    const templates = await TemplateSurat.findAll({
+    const templates = await TemplateSurat.findAll({ 
       where: { aktif: true },
       order: [['nama', 'ASC']],
     });
@@ -82,7 +82,7 @@ exports.ajukan = async (req, res, next) => {
         createdAt: permohonan.createdAt,
       },
     });
-  } catch (err) { next(err); }
+  } catch (err) { next(err); }  
 };
 
 // ===== List permohonan milik warga yg login =====

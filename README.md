@@ -23,7 +23,7 @@ cp .env.example .env   # edit sesuai kredensial MySQL kamu
 npm install
 npm run db:migrate     # buat tabel
 npm run db:seed        # akun admin + template default
-npm run dev            # default: http://localhost:3002
+npm run dev            # default: http://localhost:3000
 ```
 
 ### Setup Frontend
@@ -31,10 +31,10 @@ npm run dev            # default: http://localhost:3002
 cd frontend
 cp .env.example .env
 npm install
-npm run dev            # http://localhost:3003
+npm run dev            # http://localhost:3001
 ```
 
-> **Catatan port:** Backend default di **3002**, frontend di **3003**.
+> **Catatan port:** Backend default di **3000**, frontend di **3001**.
 > Ubah lewat `backend/.env` (`PORT=...`) dan `frontend/vite.config.js`,
 > lalu sesuaikan `frontend/.env` (`VITE_API_URL`) dan
 > `backend/.env` (`FRONTEND_URL` untuk CORS).
@@ -103,7 +103,7 @@ surat-warga/                       # project e-Surat Desa
 
 ## Cara Pakai (User Flow)
 
-1. Buka `http://localhost:3003` → langsung tampil halaman **Login**.
+1. Buka `http://localhost:3001` → langsung tampil halaman **Login**.
 2. Login admin: `atmin@rtrw.local` / `atmin123` → sistem otomatis arahkan ke dashboard admin.
 3. Buka tab incognito → di halaman login klik **Daftar Akun Warga** → isi form registrasi.
 4. Setelah daftar, otomatis masuk dashboard warga → **Ajukan Surat**.
