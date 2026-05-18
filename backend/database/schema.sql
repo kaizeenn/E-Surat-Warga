@@ -58,6 +58,7 @@ CREATE TABLE IF NOT EXISTS permohonan_surat (
   nama_usaha VARCHAR(120) NULL,
   jenis_usaha VARCHAR(120) NULL,
   alamat_usaha TEXT NULL,
+  tahun_berdiri VARCHAR(4) NULL,
 
   -- File persyaratan utama dari warga.
   file_ktp VARCHAR(255) NULL,
@@ -128,7 +129,8 @@ ALTER TABLE permohonan_surat
   ADD COLUMN IF NOT EXISTS nama_usaha VARCHAR(120) NULL AFTER kondisi_ekonomi,
   ADD COLUMN IF NOT EXISTS jenis_usaha VARCHAR(120) NULL AFTER nama_usaha,
   ADD COLUMN IF NOT EXISTS alamat_usaha TEXT NULL AFTER jenis_usaha,
-  ADD COLUMN IF NOT EXISTS file_ktp VARCHAR(255) NULL AFTER alamat_usaha,
+  ADD COLUMN IF NOT EXISTS tahun_berdiri VARCHAR(4) NULL AFTER alamat_usaha,
+  ADD COLUMN IF NOT EXISTS file_ktp VARCHAR(255) NULL AFTER tahun_berdiri,
   ADD COLUMN IF NOT EXISTS status_ktp ENUM('pending','valid','tidak_valid') NOT NULL DEFAULT 'pending' AFTER file_ktp,
   ADD COLUMN IF NOT EXISTS catatan_ktp TEXT NULL AFTER status_ktp,
   ADD COLUMN IF NOT EXISTS verified_ktp_by INT NULL AFTER catatan_ktp,

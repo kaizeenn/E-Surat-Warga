@@ -6,8 +6,8 @@ async function create(data) {
   const [result] = await db.query(
     `INSERT INTO permohonan_surat
      (warga_id, template_id, keperluan, nomor_kk, tujuan_instansi, tujuan_penggunaan, kondisi_ekonomi,
-      nama_usaha, jenis_usaha, alamat_usaha, file_ktp, file_kk, status_ktp, status_kk, status, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'pending', 'menunggu', NOW(), NOW())`,
+      nama_usaha, jenis_usaha, alamat_usaha, tahun_berdiri, file_ktp, file_kk, status_ktp, status_kk, status, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'pending', 'menunggu', NOW(), NOW())`,
     [
       data.warga_id,
       data.template_id,
@@ -19,6 +19,7 @@ async function create(data) {
       data.nama_usaha || null,
       data.jenis_usaha || null,
       data.alamat_usaha || null,
+      data.tahun_berdiri || null,
       data.file_ktp || null,
       data.file_kk || null,
     ]

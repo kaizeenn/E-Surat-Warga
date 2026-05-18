@@ -87,12 +87,12 @@ async function generate(permohonan) {
   // Contoh placeholder di template: {{NAMA}}, {{NIK}}, {{NOMOR_SURAT}}.
   const vars = {
     // Identitas RT/RW (dari env)
-    RT_NOMOR: process.env.RT_NOMOR || '003',
-    RW_NOMOR: process.env.RW_NOMOR || '005',
-    KELURAHAN: process.env.KELURAHAN || '-',
-    KECAMATAN: process.env.KECAMATAN || '-',
-    KOTA: process.env.KOTA || '-',
-    PROVINSI: process.env.PROVINSI || '-',
+    RT_NOMOR: process.env.RT_NOMOR || '02',
+    RW_NOMOR: process.env.RW_NOMOR || '03',
+    KELURAHAN: process.env.KELURAHAN || 'Saronggi',
+    KECAMATAN: process.env.KECAMATAN || 'Saronggi',
+    KOTA: process.env.KOTA || 'Sumenep',
+    PROVINSI: process.env.PROVINSI || 'Jawa Timur',
 
     // Data surat
     NOMOR_SURAT: permohonan.nomor_surat || '-',

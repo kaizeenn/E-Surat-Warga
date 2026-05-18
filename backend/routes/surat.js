@@ -62,6 +62,7 @@ const TEMPLATE_META = {
       { name: 'namaUsaha', label: 'Nama Usaha', type: 'text', required: true },
       { name: 'jenisUsaha', label: 'Jenis Usaha', type: 'text', required: true },
       { name: 'alamatUsaha', label: 'Alamat Usaha', type: 'text', required: true },
+      { name: 'tahunBerdiri', label: 'Tahun Berdiri', type: 'number', required: true },
       { name: 'nomorKk', label: 'Nomor KK', type: 'text', required: true },
     ],
   },
@@ -106,6 +107,7 @@ function buildDataTambahan(row) {
     namaUsaha: row.nama_usaha || '',
     jenisUsaha: row.jenis_usaha || '',
     alamatUsaha: row.alamat_usaha || '',
+    tahunBerdiri: row.tahun_berdiri || '',
   };
 }
 
@@ -209,6 +211,7 @@ router.post('/ajukan', authWarga, handlePersyaratanUpload, [
       nama_usaha: dataTambahan.namaUsaha || null,
       jenis_usaha: dataTambahan.jenisUsaha || null,
       alamat_usaha: dataTambahan.alamatUsaha || null,
+      tahun_berdiri: dataTambahan.tahunBerdiri || null,
       file_ktp: `/uploads/persyaratan/${ktp.filename}`,
       file_kk: `/uploads/persyaratan/${kk.filename}`,
     });

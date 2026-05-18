@@ -60,6 +60,7 @@ Aplikasi menyediakan beberapa jenis surat default:
    - Nama Usaha
    - Jenis Usaha
    - Alamat Usaha
+   - Tahun Berdiri
 
 Data NIK warga tidak diisi ulang saat pengajuan karena NIK sudah tersimpan pada akun warga.
 
@@ -203,6 +204,7 @@ Menyimpan data pengajuan surat warga, seperti:
 - keperluan
 - nomor KK
 - keterangan sesuai jenis surat
+- nama usaha, jenis usaha, alamat usaha, dan tahun berdiri untuk Surat Keterangan Usaha
 - file KTP
 - file KK
 - status verifikasi KTP
@@ -541,21 +543,21 @@ backend/uploads/surat         # file PDF surat
 
 ---
 
-## Bukti Pengujian Sederhana
+## Alur Uji Coba Aplikasi
 
-Untuk membuktikan aplikasi berjalan:
+Untuk mencoba aplikasi dari awal sampai akhir:
 
 1. Jalankan backend dan frontend.
 2. Login admin menggunakan akun default.
 3. Register akun warga baru.
 4. Login sebagai warga.
 5. Ajukan surat dan upload KTP/KK.
-6. Login admin.
+6. Login kembali sebagai admin.
 7. Buka detail permohonan.
-8. Preview lampiran.
+8. Preview lampiran KTP/KK.
 9. Verifikasi KTP dan KK.
 10. Approve permohonan.
-11. Login warga kembali.
+11. Login kembali sebagai warga.
 12. Buka detail permohonan.
 13. Download PDF surat.
 
@@ -563,4 +565,4 @@ Untuk membuktikan aplikasi berjalan:
 
 ## Lisensi
 
-Project ini dibuat untuk kebutuhan pembelajaran/tugas aplikasi e-Surat Desa.
+MIT

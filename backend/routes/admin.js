@@ -62,6 +62,7 @@ const TEMPLATE_META = {
       { name: 'namaUsaha', label: 'Nama Usaha', type: 'text', required: true },
       { name: 'jenisUsaha', label: 'Jenis Usaha', type: 'text', required: true },
       { name: 'alamatUsaha', label: 'Alamat Usaha', type: 'text', required: true },
+      { name: 'tahunBerdiri', label: 'Tahun Berdiri', type: 'number', required: true },
       { name: 'nomorKk', label: 'Nomor KK', type: 'text', required: true },
     ],
   },
@@ -89,6 +90,7 @@ function buildDataTambahan(row) {
     namaUsaha: row.nama_usaha || '',
     jenisUsaha: row.jenis_usaha || '',
     alamatUsaha: row.alamat_usaha || '',
+    tahunBerdiri: row.tahun_berdiri || '',
   };
 }
 
@@ -269,7 +271,7 @@ router.patch('/permohonan/:id/approve', async (req, res, next) => {
     const tahun = now.getFullYear();
     const bulan = now.getMonth() + 1;
     const urutan = await getNextUrutan(conn, tahun, bulan);
-    const nomorSurat = formatNomorSurat({ urutan, kodeTemplate: p.template_kode, rtNomor: process.env.RT_NOMOR || '003', bulan, tahun });
+    const nomorSurat = formatNomorSurat({ urutan, kodeTemplate: p.template_kode, rtNomor: process.env.RT_NOMOR || '02', bulan, tahun });
 
     await conn.query('UPDATE permohonan_surat SET status = ?, nomor_surat = ?, admin_id = ?, tanggal_approve = NOW(), updated_at = NOW() WHERE id = ?', ['selesai', nomorSurat, req.user.id, p.id]);
     await conn.commit();

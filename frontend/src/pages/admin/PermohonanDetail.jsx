@@ -118,6 +118,7 @@ export default function AdminPermohonanDetail() {
     namaUsaha: 'Nama Usaha',
     jenisUsaha: 'Jenis Usaha',
     alamatUsaha: 'Alamat Usaha',
+    tahunBerdiri: 'Tahun Berdiri',
   };
   const hiddenDataKeys = new Set(['formulirPermohonan', 'suratPengantarRtRw']);
   const templateFieldNames = Array.isArray(templateFields) ? templateFields.map((f) => f.name) : [];
