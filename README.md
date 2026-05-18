@@ -1,171 +1,566 @@
-# e-Surat Desa — Layanan Surat Digital
+# e-Surat Desa
 
-Sistem web untuk warga mengajukan surat keterangan (domisili, tidak mampu, usaha, dll) secara online. Admin desa/RT/RW review, approve, dan sistem generate PDF otomatis.
+**e-Surat Desa** adalah aplikasi web untuk membantu proses pengajuan surat keterangan warga secara online. Melalui aplikasi ini, warga dapat membuat akun, login, mengajukan surat, mengunggah lampiran KTP dan KK, melihat status permohonan, serta mengunduh surat PDF jika sudah disetujui admin.
 
-## Quick Start
+Admin desa/RT/RW dapat melihat permohonan warga, memeriksa lampiran, memberi catatan, menyetujui atau menolak permohonan, dan menerbitkan surat secara otomatis dalam bentuk PDF.
 
-### Prasyarat
-- Node.js ≥ 18
-- MySQL ≥ 8
-- npm
+---
 
-### Setup Database
-```bash
-cd backend
-mysql -u root -p < database/schema.sql
-```
+## Fitur Utama
 
-### Setup Backend
-```bash
-cd backend
-cp .env.example .env   # edit sesuai kredensial MySQL kamu
-npm install
-npm run dev            # default: http://localhost:3000
-```
+### Fitur Warga
 
-### Setup Frontend
-```bash
-cd frontend
-cp .env.example .env
-npm install
-npm run dev            # http://localhost:3001
-```
+- Registrasi akun warga.
+- Login warga.
+- Mengajukan permohonan surat.
+- Memilih jenis surat yang tersedia.
+- Mengisi keterangan sesuai jenis surat.
+- Upload lampiran KTP dan KK.
+- Melihat daftar riwayat permohonan.
+- Melihat detail status permohonan.
+- Melihat status verifikasi lampiran.
+- Mengunduh PDF surat jika sudah disetujui admin.
 
-> **Catatan port:** Backend default di **3000**, frontend di **3001**.
-> Ubah lewat `backend/.env` (`PORT=...`) dan `frontend/vite.config.js`,
-> lalu sesuaikan `frontend/.env` (`VITE_API_URL`) dan
-> `backend/.env` (`FRONTEND_URL` untuk CORS).
+### Fitur Admin
 
-## Kredensial Default
+- Login admin.
+- Melihat dashboard ringkasan data.
+- Melihat daftar permohonan warga.
+- Membuka detail permohonan.
+- Melihat dan preview lampiran KTP/KK.
+- Memverifikasi lampiran dengan status:
+  - `pending`
+  - `valid`
+  - `tidak_valid`
+- Menyetujui permohonan.
+- Menolak permohonan dengan catatan.
+- Generate nomor surat otomatis.
+- Generate PDF surat otomatis.
+- Melihat arsip surat selesai.
+- Mengelola template/jenis surat.
+- Upload tanda tangan digital admin.
 
-| Role | Email | Password |
-|---|---|---|
-| Admin | `atmin@rtrw.local` | `atmin123` |
+---
 
-> Ganti password admin setelah login pertama.
+## Jenis Surat Default
 
-## Dokumentasi
+Aplikasi menyediakan beberapa jenis surat default:
 
-- [ERD (Entity Relationship Diagram)](docs/ERD.md)
-- [Activity Diagram](docs/Activity-Diagram.md)
-- [Use Case Diagram](docs/Use-Case-Diagram.md)
-- [API Documentation](docs/API.md)
+1. **Surat Keterangan Domisili**
+   - Nomor KK
+   - Tujuan Instansi/Pihak
 
-## Tech Stack
+2. **Surat Keterangan Tidak Mampu**
+   - Nomor KK
+   - Tujuan Penggunaan Surat
+   - Ringkasan Kondisi Ekonomi
 
-**Backend:** Node.js · Express · MySQL2 · MySQL · JWT · Bcrypt · Puppeteer · Multer
-**Frontend:** React 18 · Vite · Tailwind CSS · React Router · Axios
+3. **Surat Keterangan Usaha**
+   - Nomor KK
+   - Nama Usaha
+   - Jenis Usaha
+   - Alamat Usaha
+
+Data NIK warga tidak diisi ulang saat pengajuan karena NIK sudah tersimpan pada akun warga.
+
+---
+
+## Teknologi yang Digunakan
+
+### Backend
+
+- Node.js
+- Express.js
+- MySQL
+- MySQL2
+- JWT untuk autentikasi
+- Bcrypt untuk enkripsi password
+- Multer untuk upload file
+- Puppeteer untuk generate PDF
+
+### Frontend
+
+- React
+- Vite
+- Tailwind CSS
+- Axios
+- React Router
+
+---
 
 ## Struktur Project
 
-```
-surat-warga/                       # project e-Surat Desa
-├── backend/                       # API Express + MySQL, struktur mirip PeringatanBanjir
-│   ├── config/                    # db.js koneksi MySQL langsung
-│   ├── middleware/                # JWT auth (warga/admin)
-│   ├── models/                    # fungsi query MySQL per tabel, tanpa Sequelize/ORM
-│   ├── routes/                    # endpoint Express, memanggil models
-│   ├── database/                  # schema.sql untuk struktur dan data awal database
-│   ├── services/                  # pdfGenerator (Puppeteer)
-│   ├── templates/                 # HTML template surat
-│   ├── utils/                     # jwt, nomorSurat helper
-│   ├── app.js                     # Express setup
-│   ├── server.js                  # Entry point
-│   ├── uploads/surat/             # Output PDF
-│   ├── uploads/ttd/               # File TTD digital admin
-│   ├── uploads/persyaratan/       # Lampiran persyaratan surat dari warga
-│   ├── .env.example
-│   └── package.json
-├── frontend/                      # React SPA + Vite
+```txt
+surat-warga/
+├── backend/
+│   ├── app.js
+│   ├── server.js
+│   ├── config/
+│   │   └── db.js
+│   ├── database/
+│   │   └── schema.sql
+│   ├── middleware/
+│   │   └── auth.js
+│   ├── models/
+│   │   ├── Admin.js
+│   │   ├── Warga.js
+│   │   ├── TemplateSurat.js
+│   │   ├── PermohonanSurat.js
+│   │   ├── NomorSurat.js
+│   │   └── index.js
+│   ├── routes/
+│   │   ├── auth.js
+│   │   ├── surat.js
+│   │   └── admin.js
+│   ├── services/
+│   │   └── pdfGenerator.js
+│   ├── templates/
+│   │   ├── domisili.html
+│   │   ├── tidak_mampu.html
+│   │   └── usaha.html
+│   ├── uploads/
+│   │   ├── persyaratan/
+│   │   ├── surat/
+│   │   └── ttd/
+│   └── utils/
+│       ├── jwt.js
+│       └── nomorSurat.js
+│
+├── frontend/
 │   ├── src/
-│   │   ├── components/            # Icon, Layout, ProtectedRoute, StatusBadge
-│   │   ├── context/               # AuthContext
+│   │   ├── components/
+│   │   ├── context/
 │   │   ├── pages/
-│   │   │   ├── warga/             # Dashboard, AjukanSurat, list, detail
-│   │   │   ├── admin/             # Dashboard, list, detail, Arsip, Template
-│   │   │   └── Login, Register, Profil
-│   │   ├── services/              # api.js (axios)
+│   │   │   ├── admin/
+│   │   │   └── warga/
+│   │   ├── services/
 │   │   ├── App.jsx
-│   │   ├── main.jsx
-│   │   └── index.css
-│   ├── public/
-│   ├── .env.example
+│   │   └── main.jsx
 │   └── package.json
-├── docs/                          # ERD, Activity, Use Case, API
-├── start.sh                       # Helper run backend + frontend
-├── .gitignore
+│
+├── docs/
+├── e-surat.md
 └── README.md
 ```
 
-## Cara Pakai (User Flow)
+---
 
-1. Buka `http://localhost:3001` → langsung tampil halaman **Login**.
-2. Login admin: `atmin@rtrw.local` / `atmin123` → sistem otomatis arahkan ke dashboard admin.
-3. Buka tab incognito → di halaman login klik **Daftar Akun Warga** → isi form registrasi.
-4. Setelah daftar, otomatis masuk dashboard warga → **Ajukan Surat**.
-5. Pilih jenis surat (Domisili / Tidak Mampu / Usaha), isi form, upload lampiran persyaratan, preview, lalu kirim.
-6. Opsional: admin buka **Profil → TTD Digital** untuk upload tanda tangan.
-7. Kembali ke admin → lihat permohonan masuk → klik **Review**.
-8. Admin verifikasi lampiran satu per satu (valid / tidak valid / pending) dan bisa memberi catatan per lampiran.
-9. Jika semua lampiran wajib sudah valid, klik **Approve & Terbitkan** → sistem auto-generate nomor + PDF.
-10. Warga refresh detail permohonan → status lampiran, catatan admin, dan tombol **Download PDF** akan tampil sesuai progres.
+## Struktur Database
 
-> **Login terpadu:** satu halaman login untuk warga & admin.
-> Sistem otomatis mendeteksi role berdasarkan email yang terdaftar di
-> database (cek tabel `admin` dulu, lalu `warga`).
-> Registrasi (`/register`) **hanya untuk warga** — akun admin
-> dibuat oleh pengurus desa/RT/RW lewat database.
+Database dibuat sederhana dan tidak menyimpan data dinamis dalam JSON.
 
-## Template Surat Default
+Tabel utama:
 
-Saat ini template default yang tersedia:
-- **Surat Keterangan Domisili**
-- **Surat Keterangan Tidak Mampu (SKTM)**
-- **Surat Keterangan Usaha (SKU)**
+```txt
+admin
+warga
+template_surat
+permohonan_surat
+nomor_surat
+```
 
-NIK **tidak diinput ulang** saat pengajuan surat karena sistem mengambilnya dari akun warga yang sedang login.
+### Tabel Penting
 
-## Upload Lampiran Persyaratan
+#### `warga`
 
-Warga dapat mengunggah berkas persyaratan langsung saat mengajukan surat.
+Menyimpan data akun warga, seperti:
 
-- format upload memakai `multipart/form-data`
-- file disimpan di `backend/uploads/persyaratan`
-- batas ukuran file: **5 MB per file**
-- lampiran wajib harus diunggah sebelum permohonan dikirim
+- nama lengkap
+- NIK
+- email
+- password
+- tempat lahir
+- tanggal lahir
+- alamat
+- pekerjaan
+- nomor HP
 
-## Verifikasi Lampiran oleh Admin
+#### `admin`
 
-Admin dapat memverifikasi lampiran per persyaratan dengan status:
-- `valid`
-- `tidak_valid`
-- `pending`
+Menyimpan data akun admin, seperti:
 
-Admin juga bisa menambahkan catatan verifikasi per lampiran.
-Permohonan **tidak bisa di-approve** jika masih ada lampiran wajib yang:
-- belum diupload, atau
-- belum berstatus `valid`
+- nama lengkap
+- email
+- password
+- jabatan
+- tanda tangan digital
+- status aktif
 
-## Catatan Struktur Database
+#### `template_surat`
 
-Struktur database dibuat sederhana seperti kebutuhan tugas kampus. Tabel utama hanya:
-- `warga`
-- `admin`
-- `template_surat`
-- `permohonan_surat`
-- `nomor_surat`
+Menyimpan jenis surat yang tersedia, misalnya:
 
-Data penting pengajuan disimpan langsung di `permohonan_surat`, misalnya:
-- `nomor_kk`
-- `tujuan_instansi`
-- `tujuan_penggunaan`
-- `kondisi_ekonomi`
-- `nama_usaha`, `jenis_usaha`, `alamat_usaha`
-- `file_ktp`, `file_kk` untuk path file upload
-- `status_ktp`, `status_kk`
+- DOMISILI
+- TIDAK_MAMPU
+- USAHA
 
-Jadi tidak ada lagi penyimpanan JSON dan tidak ada tabel tambahan untuk data yang tidak diperlukan.
+#### `permohonan_surat`
+
+Menyimpan data pengajuan surat warga, seperti:
+
+- warga yang mengajukan
+- jenis surat
+- keperluan
+- nomor KK
+- keterangan sesuai jenis surat
+- file KTP
+- file KK
+- status verifikasi KTP
+- status verifikasi KK
+- status permohonan
+- catatan admin
+- nomor surat
+- file PDF
+
+#### `nomor_surat`
+
+Menyimpan nomor urut surat berdasarkan bulan dan tahun agar nomor surat otomatis tidak bentrok.
+
+---
+
+## Alur Penggunaan Aplikasi
+
+### 1. Warga Registrasi
+
+Warga membuka aplikasi, lalu memilih menu daftar akun. Warga mengisi data seperti nama, NIK, email, password, dan data profil lainnya.
+
+Setelah berhasil registrasi, warga dapat login menggunakan email dan password tersebut.
+
+### 2. Warga Login
+
+Warga login melalui halaman login utama. Sistem akan memeriksa email dan password. Jika cocok, warga masuk ke dashboard warga.
+
+### 3. Warga Mengajukan Surat
+
+Warga membuka menu **Ajukan Surat**, lalu:
+
+1. memilih jenis surat,
+2. mengisi keperluan,
+3. mengisi keterangan sesuai jenis surat,
+4. mengunggah KTP,
+5. mengunggah KK,
+6. mengirim permohonan.
+
+Setelah berhasil dikirim, status permohonan awal adalah:
+
+```txt
+menunggu
+```
+
+### 4. Warga Melihat Riwayat Permohonan
+
+Warga dapat membuka menu riwayat permohonan untuk melihat daftar surat yang pernah diajukan.
+
+Status permohonan yang dapat muncul:
+
+```txt
+menunggu
+diproses
+selesai
+ditolak
+```
+
+Warga hanya dapat melihat permohonan miliknya sendiri karena data difilter berdasarkan akun yang sedang login.
+
+### 5. Admin Login
+
+Admin login menggunakan akun admin default atau akun admin lain yang sudah dibuat.
+
+Akun admin default:
+
+```txt
+Email    : atmin@rtrw.local
+Password : atmin123
+```
+
+Setelah login, admin masuk ke dashboard admin.
+
+### 6. Admin Review Permohonan
+
+Admin membuka daftar permohonan, lalu memilih salah satu permohonan warga.
+
+Pada halaman detail, admin dapat melihat:
+
+- data warga,
+- jenis surat,
+- keperluan,
+- keterangan surat,
+- lampiran KTP,
+- lampiran KK,
+- status permohonan.
+
+Admin juga dapat membuka preview gambar lampiran KTP/KK.
+
+### 7. Admin Verifikasi Lampiran
+
+Sebelum permohonan disetujui, admin harus memverifikasi lampiran KTP dan KK.
+
+Status verifikasi lampiran:
+
+```txt
+pending
+valid
+tidak_valid
+```
+
+Permohonan tidak bisa disetujui jika KTP atau KK belum berstatus `valid`.
+
+### 8. Admin Approve atau Tolak Permohonan
+
+Jika data dan lampiran sudah benar, admin dapat klik tombol approve. Sistem akan:
+
+1. membuat nomor surat otomatis,
+2. mengubah status menjadi `selesai`,
+3. membuat file PDF surat,
+4. menyimpan path PDF ke database.
+
+Jika permohonan tidak sesuai, admin dapat menolak permohonan dan memberikan catatan alasan penolakan.
+
+### 9. Warga Download Surat
+
+Jika permohonan sudah selesai, warga dapat membuka detail permohonan dan mengunduh file PDF surat.
+
+Endpoint download surat:
+
+```txt
+GET /api/surat/saya/:id/download
+```
+
+Endpoint ini mengecek:
+
+- permohonan harus milik warga yang sedang login,
+- status harus `selesai`,
+- file PDF harus tersedia,
+- file PDF harus ada di server.
+
+Jika semua sesuai, file dikirim ke pengguna.
+
+---
+
+## Cara Menjalankan Aplikasi
+
+### 1. Persiapan
+
+Pastikan sudah terinstall:
+
+- Node.js
+- npm
+- MySQL atau MariaDB
+
+---
+
+### 2. Setup Database
+
+Masuk ke folder backend:
+
+```bash
+cd backend
+```
+
+Import database:
+
+```bash
+mysql -u root -p < database/schema.sql
+```
+
+Jika MySQL root tidak memakai password, bisa gunakan:
+
+```bash
+mysql -u root < database/schema.sql
+```
+
+---
+
+### 3. Setup Backend
+
+Masuk ke folder backend:
+
+```bash
+cd backend
+```
+
+Install dependency:
+
+```bash
+npm install
+```
+
+Salin file environment:
+
+```bash
+cp .env.example .env
+```
+
+Sesuaikan isi `.env`, contoh:
+
+```env
+PORT=3000
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=
+DB_NAME=surat_warga
+JWT_SECRET=secret_key_kamu
+FRONTEND_URL=http://localhost:3001
+```
+
+Jalankan backend:
+
+```bash
+npm run dev
+```
+
+Backend berjalan di:
+
+```txt
+http://localhost:3000
+```
+
+---
+
+### 4. Setup Frontend
+
+Buka terminal baru, masuk ke folder frontend:
+
+```bash
+cd frontend
+```
+
+Install dependency:
+
+```bash
+npm install
+```
+
+Salin file environment:
+
+```bash
+cp .env.example .env
+```
+
+Pastikan isi `.env` frontend:
+
+```env
+VITE_API_URL=http://localhost:3000/api
+```
+
+Jalankan frontend:
+
+```bash
+npm run dev
+```
+
+Frontend berjalan di:
+
+```txt
+http://localhost:3001
+```
+
+---
+
+## Cara Login
+
+### Login Admin
+
+Gunakan akun default:
+
+```txt
+Email    : atmin@rtrw.local
+Password : atmin123
+```
+
+### Login Warga
+
+Warga harus daftar terlebih dahulu melalui halaman register, lalu login menggunakan email dan password yang dibuat.
+
+---
+
+## Endpoint Penting
+
+### Auth
+
+```txt
+POST /api/auth/warga/register
+POST /api/auth/login
+GET  /api/auth/me
+PUT  /api/auth/profil
+```
+
+### Warga / Surat
+
+```txt
+GET  /api/surat/template
+GET  /api/surat/template/:kode
+POST /api/surat/ajukan
+GET  /api/surat/saya
+GET  /api/surat/saya/:id
+GET  /api/surat/saya/:id/download
+```
+
+### Admin
+
+```txt
+GET    /api/admin/stats
+GET    /api/admin/permohonan
+GET    /api/admin/permohonan/:id
+PATCH  /api/admin/permohonan/:id/lampiran/:index/verifikasi
+PATCH  /api/admin/permohonan/:id/approve
+PATCH  /api/admin/permohonan/:id/tolak
+GET    /api/admin/arsip
+GET    /api/admin/template
+POST   /api/admin/template
+PUT    /api/admin/template/:id
+PATCH  /api/admin/template/:id/toggle
+DELETE /api/admin/template/:id
+```
+
+---
+
+## Folder Upload
+
+File upload disimpan di folder berikut:
+
+```txt
+backend/uploads/persyaratan   # file KTP dan KK
+backend/uploads/ttd           # tanda tangan admin
+backend/uploads/surat         # file PDF surat
+```
+
+---
+
+## Catatan Penting
+
+- Backend berjalan di port `3000`.
+- Frontend berjalan di port `3001`.
+- Database menggunakan file `backend/database/schema.sql`.
+- Project menggunakan `models`, tetapi tidak memakai Sequelize.
+- Query database menggunakan MySQL2.
+- Password disimpan dalam bentuk hash menggunakan bcrypt.
+- Autentikasi menggunakan JWT.
+- File KTP dan KK hanya disimpan sebagai path file di database.
+- Validasi ukuran file dilakukan di program, bukan disimpan di database.
+
+---
+
+## Bukti Pengujian Sederhana
+
+Untuk membuktikan aplikasi berjalan:
+
+1. Jalankan backend dan frontend.
+2. Login admin menggunakan akun default.
+3. Register akun warga baru.
+4. Login sebagai warga.
+5. Ajukan surat dan upload KTP/KK.
+6. Login admin.
+7. Buka detail permohonan.
+8. Preview lampiran.
+9. Verifikasi KTP dan KK.
+10. Approve permohonan.
+11. Login warga kembali.
+12. Buka detail permohonan.
+13. Download PDF surat.
+
+---
 
 ## Lisensi
 
-MIT
+Project ini dibuat untuk kebutuhan pembelajaran/tugas aplikasi e-Surat Desa.

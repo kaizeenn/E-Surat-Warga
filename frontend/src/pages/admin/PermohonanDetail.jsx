@@ -120,7 +120,18 @@ export default function AdminPermohonanDetail() {
     alamatUsaha: 'Alamat Usaha',
   };
   const hiddenDataKeys = new Set(['formulirPermohonan', 'suratPengantarRtRw']);
-  const dataTambahanRows = Object.entries(dataTambahan || {}).filter(([k]) => !hiddenDataKeys.has(k));
+  const templateFieldNames = Array.isArray(templateFields) ? templateFields.map((f) => f.name) : [];
+  const dataTambahanRows = templateFieldNames.length
+    ? templateFieldNames
+        .map((key) => [key, dataTambahan?.[key]])
+        .filter(([key, value]) => !hiddenDataKeys.has(key) && value !== undefined && value !== null && String(value).trim() !== '')
+    : Object.entries(dataTambahan || {}).filter(([key, value]) => !hiddenDataKeys.has(key) && value !== undefined && value !== null && String(value).trim() !== '');
+  const tanggalAjukan = p.created_at || p.createdAt;
+  const formatTanggal = (value) => {
+    if (!value) return '-';
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? '-' : date.toLocaleString('id-ID');
+  };
   lampiranPersyaratan = Array.isArray(lampiranPersyaratan)
     ? lampiranPersyaratan.map((item, idx) => ({
         ...item,
@@ -156,7 +167,7 @@ export default function AdminPermohonanDetail() {
             <h2 className="font-semibold mb-4">Data Surat</h2>
             <dl className="space-y-3 text-sm">
               <Row label="Jenis Surat">{p.template?.nama}</Row>
-              <Row label="Tgl. Ajukan">{new Date(p.createdAt).toLocaleString('id-ID')}</Row>
+              <Row label="Tgl. Ajukan">{formatTanggal(tanggalAjukan)}</Row>
               <Row label="Keperluan">{p.keperluan}</Row>
               {dataTambahanRows.map(([k, v]) => (
                 <Row key={k} label={fieldLabels[k] || fallbackLabels[k] || k}>{String(v)}</Row>

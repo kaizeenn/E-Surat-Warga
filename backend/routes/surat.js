@@ -238,4 +238,26 @@ router.get('/saya/:id', authWarga, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// GET /api/surat/saya/:id/download
+// Endpoint download surat selesai.
+// Endpoint ini mengecek 3 hal sebelum mengirim file:
+// 1. Permohonan harus milik warga yang sedang login.
+// 2. Status permohonan harus selesai.
+// 3. File PDF surat harus sudah tersedia di server.
+router.get('/saya/:id/download', authWarga, async (req, res, next) => {
+  try {
+    const row = await PermohonanSurat.findByIdAndWarga(req.params.id, req.user.id);
+    if (!row) return res.status(404).json({ success: false, message: 'Permohonan tidak ditemukan' });
+    if (row.status !== 'selesai') return res.status(400).json({ success: false, message: 'Surat belum selesai, belum bisa diunduh' });
+    if (!row.file_pdf) return res.status(404).json({ success: false, message: 'File PDF surat belum tersedia' });
+
+    const relativePath = row.file_pdf.replace(/^\/uploads\//, 'uploads/');
+    const filePath = path.join(__dirname, '..', relativePath);
+    if (!fs.existsSync(filePath)) return res.status(404).json({ success: false, message: 'File PDF tidak ditemukan di server' });
+
+    const fileName = `surat-${row.nomor_surat || row.id}.pdf`.replace(/[\\/]/g, '-');
+    res.download(filePath, fileName);
+  } catch (err) { next(err); }
+});
+
 module.exports = router;

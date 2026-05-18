@@ -50,7 +50,18 @@ export default function PermohonanDetail() {
     alamatUsaha: 'Alamat Usaha',
   };
   const hiddenDataKeys = new Set(['formulirPermohonan', 'suratPengantarRtRw']);
-  const dataTambahanRows = Object.entries(dataTambahan || {}).filter(([k]) => !hiddenDataKeys.has(k));
+  const templateFieldNames = Array.isArray(templateFields) ? templateFields.map((f) => f.name) : [];
+  const dataTambahanRows = templateFieldNames.length
+    ? templateFieldNames
+        .map((key) => [key, dataTambahan?.[key]])
+        .filter(([key, value]) => !hiddenDataKeys.has(key) && value !== undefined && value !== null && String(value).trim() !== '')
+    : Object.entries(dataTambahan || {}).filter(([key, value]) => !hiddenDataKeys.has(key) && value !== undefined && value !== null && String(value).trim() !== '');
+  const tanggalAjukan = p.created_at || p.createdAt;
+  const formatTanggal = (value) => {
+    if (!value) return '-';
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? '-' : date.toLocaleString('id-ID');
+  };
   lampiranPersyaratan = Array.isArray(lampiranPersyaratan)
     ? lampiranPersyaratan.map((item, idx) => ({
         ...item,
@@ -115,11 +126,11 @@ export default function PermohonanDetail() {
                 <StatusBadge status={p.status} />
               </Row>
               <Row label="Tgl. Ajukan">
-                {new Date(p.createdAt).toLocaleString('id-ID')}
+                {formatTanggal(tanggalAjukan)}
               </Row>
               {p.tanggal_approve && (
                 <Row label="Tgl. Diproses">
-                  {new Date(p.tanggal_approve).toLocaleString('id-ID')}
+                  {formatTanggal(p.tanggal_approve)}
                 </Row>
               )}
               {p.nomor_surat && (
