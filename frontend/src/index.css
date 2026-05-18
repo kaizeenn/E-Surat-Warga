@@ -4,33 +4,97 @@
 
 @layer base {
   html {
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Plus Jakarta Sans', 'Inter', ui-sans-serif, system-ui, sans-serif;
   }
+
   body {
-    @apply bg-slate-50 text-slate-900 antialiased;
+    @apply min-h-screen bg-slate-50 text-slate-900 antialiased;
+    background:
+      radial-gradient(circle at top left, rgba(37, 99, 235, 0.12), transparent 32rem),
+      radial-gradient(circle at top right, rgba(220, 38, 38, 0.10), transparent 28rem),
+      linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+  }
+
+  ::selection {
+    @apply bg-warga-600 text-white;
   }
 }
 
 @layer components {
   .btn {
-    @apply inline-flex items-center justify-center px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center rounded-2xl px-3 py-2 text-xs font-semibold shadow-sm transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 sm:px-4 sm:py-2.5 sm:text-sm;
   }
+
   .btn-primary {
-    @apply btn bg-warga-600 text-white hover:bg-warga-700;
+    @apply btn bg-warga-600 text-white hover:-translate-y-0.5 hover:bg-warga-700 hover:shadow-lg hover:shadow-warga-600/20;
   }
-  .btn-danger {
-    @apply btn bg-red-600 text-white hover:bg-red-700;
-  }
+
   .btn-admin-primary {
-    @apply btn bg-admin-600 text-white hover:bg-admin-700;
+    @apply btn bg-admin-600 text-white hover:-translate-y-0.5 hover:bg-admin-700 hover:shadow-lg hover:shadow-admin-600/20;
   }
+
+  .btn-danger {
+    @apply btn bg-red-600 text-white hover:-translate-y-0.5 hover:bg-red-700 hover:shadow-lg hover:shadow-red-600/20;
+  }
+
   .btn-secondary {
-    @apply btn bg-slate-200 text-slate-800 hover:bg-slate-300;
+    @apply btn border border-slate-200 bg-white text-slate-700 hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50 hover:shadow-md;
   }
+
   .input {
-    @apply w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-warga-500 focus:border-transparent;
+    @apply w-full rounded-2xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 shadow-sm outline-none transition-all placeholder:text-slate-400 focus:border-warga-400 focus:ring-4 focus:ring-warga-100 sm:px-4 sm:py-3;
   }
+
   .card {
-    @apply bg-white rounded-xl shadow-sm border border-slate-200 p-6;
+    @apply rounded-2xl border border-white/70 bg-white/90 p-4 shadow-xl shadow-slate-200/50 backdrop-blur sm:rounded-3xl sm:p-6;
+  }
+
+  .glass-card {
+    @apply rounded-3xl border border-white/60 bg-white/70 shadow-xl shadow-slate-200/60 backdrop-blur-xl;
+  }
+
+  .page-hero {
+    @apply mb-4 overflow-hidden rounded-2xl border border-white/70 bg-white/80 p-4 shadow-xl shadow-slate-200/60 backdrop-blur sm:mb-6 sm:rounded-[2rem] sm:p-6;
+  }
+
+  .page-kicker {
+    @apply text-xs font-bold uppercase tracking-[0.22em] text-slate-400;
+  }
+
+  .page-title {
+    @apply mt-1 text-xl font-black tracking-tight text-slate-950 sm:text-2xl md:text-3xl;
+  }
+
+  .page-subtitle {
+    @apply mt-2 max-w-2xl text-sm leading-relaxed text-slate-500;
+  }
+
+  .stat-card {
+    @apply relative overflow-hidden rounded-2xl border border-white/70 bg-white/90 p-4 shadow-lg shadow-slate-200/60 transition-all duration-200 hover:-translate-y-1 hover:shadow-2xl hover:shadow-slate-300/50 sm:rounded-3xl sm:p-5;
+  }
+
+  .stat-card::before {
+    content: '';
+    @apply absolute -right-8 -top-8 h-24 w-24 rounded-full bg-slate-100 opacity-70 transition-transform duration-300;
+  }
+
+  .table-shell {
+    @apply overflow-hidden rounded-2xl border border-white/70 bg-white/90 shadow-xl shadow-slate-200/60 backdrop-blur sm:rounded-3xl;
+  }
+
+  .table-head {
+    @apply bg-slate-50/80 text-left text-xs font-bold uppercase tracking-wider text-slate-500;
+  }
+
+  .table-row {
+    @apply transition-colors hover:bg-slate-50/80;
+  }
+
+  .empty-state {
+    @apply rounded-3xl border border-dashed border-slate-200 bg-slate-50/80 px-6 py-14 text-center;
+  }
+
+  .pill-tab {
+    @apply rounded-2xl px-4 py-2 text-sm font-semibold transition-all;
   }
 }

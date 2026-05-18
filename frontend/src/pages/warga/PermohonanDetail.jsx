@@ -30,6 +30,58 @@ export default function PermohonanDetail() {
   if (typeof dataTambahan === 'string') {
     try { dataTambahan = JSON.parse(dataTambahan); } catch { dataTambahan = {}; }
   }
+  let lampiranPersyaratan = p.lampiran_persyaratan;
+  if (typeof lampiranPersyaratan === 'string') {
+    try { lampiranPersyaratan = JSON.parse(lampiranPersyaratan); } catch { lampiranPersyaratan = []; }
+  }
+
+  let templateFields = p.template?.fields || [];
+  if (typeof templateFields === 'string') {
+    try { templateFields = JSON.parse(templateFields); } catch { templateFields = []; }
+  }
+  const fieldLabels = Object.fromEntries((Array.isArray(templateFields) ? templateFields : []).map((f) => [f.name, f.label || f.name]));
+  const fallbackLabels = {
+    tujuanInstansi: 'Tujuan Instansi/Pihak',
+    tujuanPenggunaan: 'Tujuan Penggunaan Surat',
+    nomorKk: 'Nomor KK',
+    kondisiEkonomi: 'Ringkasan Kondisi Ekonomi',
+    namaUsaha: 'Nama Usaha',
+    jenisUsaha: 'Jenis Usaha',
+    alamatUsaha: 'Alamat Usaha',
+  };
+  const hiddenDataKeys = new Set(['formulirPermohonan', 'suratPengantarRtRw']);
+  const dataTambahanRows = Object.entries(dataTambahan || {}).filter(([k]) => !hiddenDataKeys.has(k));
+  lampiranPersyaratan = Array.isArray(lampiranPersyaratan)
+    ? lampiranPersyaratan.map((item, idx) => ({
+        ...item,
+        labelView: item.label || item.nama || `Persyaratan ${idx + 1}`,
+        fileNameView: item.file_name || item.original_name || null,
+        noteView: item.note || item.catatan || '',
+        verificationStatusView: item.verification_status || item.verifikasi_status || 'pending',
+        verificationNoteView: item.verification_note || item.verifikasi_catatan || '',
+        requiredView: item.required ?? item.wajib ?? false,
+      }))
+    : [];
+
+  const adaLampiran = Array.isArray(lampiranPersyaratan) && lampiranPersyaratan.length > 0;
+  const adaDitolak = adaLampiran && lampiranPersyaratan.some((item) => item.verificationStatusView === 'tidak_valid');
+  const semuaValid = adaLampiran && lampiranPersyaratan.every((item) => !item.requiredView || item.verificationStatusView === 'valid');
+  const ringkasanLampiran = !adaLampiran
+    ? null
+    : adaDitolak
+      ? {
+          text: 'Ada lampiran yang ditolak. Silakan cek catatan admin pada berkas terkait.',
+          className: 'bg-red-50 border-red-200 text-red-800',
+        }
+      : semuaValid
+        ? {
+            text: 'Semua lampiran persyaratan sudah valid.',
+            className: 'bg-emerald-50 border-emerald-200 text-emerald-800',
+          }
+        : {
+            text: 'Sebagian lampiran masih menunggu verifikasi admin.',
+            className: 'bg-amber-50 border-amber-200 text-amber-800',
+          };
 
   return (
     <WargaLayout>
@@ -42,6 +94,20 @@ export default function PermohonanDetail() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
+          {ringkasanLampiran && (
+            <div className={`card border ${ringkasanLampiran.className}`}>
+              <div className="flex items-start gap-3">
+                <Icon name={adaDitolak ? 'alert' : semuaValid ? 'check' : 'clock'} className="w-5 h-5 shrink-0 mt-0.5" />
+                <div>
+                  <h3 className="font-semibold">
+                    {adaDitolak ? 'Status Lampiran Perlu Perbaikan' : semuaValid ? 'Status Lampiran Lengkap' : 'Status Lampiran Diproses'}
+                  </h3>
+                  <p className="text-sm mt-1">{ringkasanLampiran.text}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="card">
             <h2 className="font-semibold mb-4">{p.template?.nama}</h2>
             <dl className="space-y-3 text-sm">
@@ -62,11 +128,51 @@ export default function PermohonanDetail() {
                 </Row>
               )}
               <Row label="Keperluan">{p.keperluan}</Row>
-              {Object.entries(dataTambahan || {}).map(([k, v]) => (
-                <Row key={k} label={k}>{String(v)}</Row>
+              {dataTambahanRows.map(([k, v]) => (
+                <Row key={k} label={fieldLabels[k] || fallbackLabels[k] || k}>{String(v)}</Row>
               ))}
             </dl>
           </div>
+
+          {Array.isArray(lampiranPersyaratan) && lampiranPersyaratan.length > 0 && (
+            <div className="card">
+              <h2 className="font-semibold mb-4">Lampiran Persyaratan</h2>
+              <div className="space-y-3 text-sm">
+                {lampiranPersyaratan.map((item, idx) => (
+                  <div key={idx} className="border-b border-slate-100 pb-3 last:border-b-0">
+                    <div className="flex flex-wrap gap-2">
+                      <div className="w-40 text-slate-500">{item.labelView}</div>
+                      <div className="flex-1 min-w-0">
+                        {item.file_url ? (
+                          <a
+                            href={`${fileBase}${item.file_url}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-warga-700 hover:underline font-medium"
+                          >
+                            {item.fileNameView || 'Lihat berkas'}
+                          </a>
+                        ) : (
+                          <span className="text-slate-400">Belum ada file</span>
+                        )}
+
+                        <div className="mt-2">
+                          <span className={`text-xs px-2 py-1 rounded-full ${item.verificationStatusView === 'valid' ? 'bg-emerald-100 text-emerald-700' : item.verificationStatusView === 'tidak_valid' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
+                            {item.verificationStatusView === 'valid' ? 'Valid' : item.verificationStatusView === 'tidak_valid' ? 'Tidak Valid' : 'Menunggu Verifikasi'}
+                          </span>
+                        </div>
+
+                        {item.noteView && <p className="text-xs text-slate-500 mt-2">Persyaratan: {item.noteView}</p>}
+                        {item.verificationNoteView && (
+                          <p className="text-xs text-slate-600 mt-2">Catatan admin: {item.verificationNoteView}</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {p.catatan_admin && (
             <div className="card border-red-200 bg-red-50">

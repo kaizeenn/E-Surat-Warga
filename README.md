@@ -11,9 +11,8 @@ Sistem web untuk warga mengajukan surat keterangan (domisili, tidak mampu, usaha
 
 ### Setup Database
 ```bash
-mysql -u root -p
-> CREATE DATABASE surat_warga CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-> exit
+cd backend
+mysql -u root -p < database/schema.sql
 ```
 
 ### Setup Backend
@@ -21,8 +20,6 @@ mysql -u root -p
 cd backend
 cp .env.example .env   # edit sesuai kredensial MySQL kamu
 npm install
-npm run db:migrate     # buat tabel
-npm run db:seed        # akun admin + template default
 npm run dev            # default: http://localhost:3000
 ```
 
@@ -39,7 +36,7 @@ npm run dev            # http://localhost:3001
 > lalu sesuaikan `frontend/.env` (`VITE_API_URL`) dan
 > `backend/.env` (`FRONTEND_URL` untuk CORS).
 
-## Kredensial Default (setelah seed)
+## Kredensial Default
 
 | Role | Email | Password |
 |---|---|---|
@@ -56,28 +53,27 @@ npm run dev            # http://localhost:3001
 
 ## Tech Stack
 
-**Backend:** Node.js · Express · Sequelize · MySQL · JWT · Bcrypt · Puppeteer
+**Backend:** Node.js · Express · MySQL2 · MySQL · JWT · Bcrypt · Puppeteer · Multer
 **Frontend:** React 18 · Vite · Tailwind CSS · React Router · Axios
 
 ## Struktur Project
 
 ```
 surat-warga/                       # project e-Surat Desa
-├── backend/                       # API Express + MySQL
-│   ├── src/
-│   │   ├── config/                # Database config (Sequelize)
-│   │   ├── controllers/           # auth, surat, admin
-│   │   ├── middleware/            # JWT auth (warga/admin)
-│   │   ├── models/                # 5 model + asosiasi
-│   │   ├── routes/                # /api/auth, /api/surat, /api/admin
-│   │   ├── scripts/               # migrate.js, seed.js
-│   │   ├── services/              # pdfGenerator (Puppeteer)
-│   │   ├── templates/             # HTML template surat
-│   │   ├── utils/                 # jwt, nomorSurat helper
-│   │   ├── app.js                 # Express setup
-│   │   └── server.js              # Entry point
+├── backend/                       # API Express + MySQL, struktur mirip PeringatanBanjir
+│   ├── config/                    # db.js koneksi MySQL langsung
+│   ├── middleware/                # JWT auth (warga/admin)
+│   ├── models/                    # fungsi query MySQL per tabel, tanpa Sequelize/ORM
+│   ├── routes/                    # endpoint Express, memanggil models
+│   ├── database/                  # schema.sql untuk struktur dan data awal database
+│   ├── services/                  # pdfGenerator (Puppeteer)
+│   ├── templates/                 # HTML template surat
+│   ├── utils/                     # jwt, nomorSurat helper
+│   ├── app.js                     # Express setup
+│   ├── server.js                  # Entry point
 │   ├── uploads/surat/             # Output PDF
 │   ├── uploads/ttd/               # File TTD digital admin
+│   ├── uploads/persyaratan/       # Lampiran persyaratan surat dari warga
 │   ├── .env.example
 │   └── package.json
 ├── frontend/                      # React SPA + Vite
@@ -107,17 +103,68 @@ surat-warga/                       # project e-Surat Desa
 2. Login admin: `atmin@rtrw.local` / `atmin123` → sistem otomatis arahkan ke dashboard admin.
 3. Buka tab incognito → di halaman login klik **Daftar Akun Warga** → isi form registrasi.
 4. Setelah daftar, otomatis masuk dashboard warga → **Ajukan Surat**.
-5. Pilih jenis surat (Domisili / Tidak Mampu / Usaha), isi form, preview, kirim.
+5. Pilih jenis surat (Domisili / Tidak Mampu / Usaha), isi form, upload lampiran persyaratan, preview, lalu kirim.
 6. Opsional: admin buka **Profil → TTD Digital** untuk upload tanda tangan.
 7. Kembali ke admin → lihat permohonan masuk → klik **Review**.
-8. Klik **Approve & Terbitkan** → sistem auto-generate nomor + PDF.
-9. Warga refresh detail permohonan → tombol **Download PDF** muncul.
+8. Admin verifikasi lampiran satu per satu (valid / tidak valid / pending) dan bisa memberi catatan per lampiran.
+9. Jika semua lampiran wajib sudah valid, klik **Approve & Terbitkan** → sistem auto-generate nomor + PDF.
+10. Warga refresh detail permohonan → status lampiran, catatan admin, dan tombol **Download PDF** akan tampil sesuai progres.
 
 > **Login terpadu:** satu halaman login untuk warga & admin.
 > Sistem otomatis mendeteksi role berdasarkan email yang terdaftar di
 > database (cek tabel `admin` dulu, lalu `warga`).
 > Registrasi (`/register`) **hanya untuk warga** — akun admin
-> dibuat oleh pengurus desa/RT/RW lewat seed/database.
+> dibuat oleh pengurus desa/RT/RW lewat database.
+
+## Template Surat Default
+
+Saat ini template default yang tersedia:
+- **Surat Keterangan Domisili**
+- **Surat Keterangan Tidak Mampu (SKTM)**
+- **Surat Keterangan Usaha (SKU)**
+
+NIK **tidak diinput ulang** saat pengajuan surat karena sistem mengambilnya dari akun warga yang sedang login.
+
+## Upload Lampiran Persyaratan
+
+Warga dapat mengunggah berkas persyaratan langsung saat mengajukan surat.
+
+- format upload memakai `multipart/form-data`
+- file disimpan di `backend/uploads/persyaratan`
+- batas ukuran file: **5 MB per file**
+- lampiran wajib harus diunggah sebelum permohonan dikirim
+
+## Verifikasi Lampiran oleh Admin
+
+Admin dapat memverifikasi lampiran per persyaratan dengan status:
+- `valid`
+- `tidak_valid`
+- `pending`
+
+Admin juga bisa menambahkan catatan verifikasi per lampiran.
+Permohonan **tidak bisa di-approve** jika masih ada lampiran wajib yang:
+- belum diupload, atau
+- belum berstatus `valid`
+
+## Catatan Struktur Database
+
+Struktur database dibuat sederhana seperti kebutuhan tugas kampus. Tabel utama hanya:
+- `warga`
+- `admin`
+- `template_surat`
+- `permohonan_surat`
+- `nomor_surat`
+
+Data penting pengajuan disimpan langsung di `permohonan_surat`, misalnya:
+- `nomor_kk`
+- `tujuan_instansi`
+- `tujuan_penggunaan`
+- `kondisi_ekonomi`
+- `nama_usaha`, `jenis_usaha`, `alamat_usaha`
+- `file_ktp`, `file_kk` untuk path file upload
+- `status_ktp`, `status_kk`
+
+Jadi tidak ada lagi penyimpanan JSON dan tidak ada tabel tambahan untuk data yang tidak diperlukan.
 
 ## Lisensi
 

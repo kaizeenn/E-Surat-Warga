@@ -32,38 +32,34 @@ export default function AdminPermohonanList() {
 
   return (
     <AdminLayout>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">Permohonan Masuk</h1>
-        <p className="text-slate-500">Daftar semua permohonan dari warga.</p>
-      </div>
+      <section className="page-hero">
+        <div>
+          <p className="page-kicker">Antrian Admin</p>
+          <h1 className="page-title">Permohonan Masuk</h1>
+          <p className="page-subtitle">Review pengajuan warga, cek data, verifikasi lampiran, lalu setujui atau tolak permohonan.</p>
+        </div>
+      </section>
 
-      <div className="card">
-        <div className="flex flex-wrap gap-3 mb-4">
-          <div className="flex gap-1 bg-slate-100 rounded-lg p-1">
+      <div className="table-shell p-4 md:p-6">
+        <div className="mb-5 flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+          <div className="flex flex-wrap gap-2 rounded-3xl bg-slate-100 p-1">
             {FILTERS.map((f) => (
               <button
                 key={f.value}
                 onClick={() => setStatus(f.value)}
-                className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
-                  status === f.value
-                    ? 'bg-white shadow-sm font-medium'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
+                className={`pill-tab ${status === f.value ? 'bg-white text-admin-700 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
               >
                 {f.label}
               </button>
             ))}
           </div>
-          <form
-            onSubmit={(e) => { e.preventDefault(); fetchData(); }}
-            className="flex flex-1 max-w-md gap-2"
-          >
+          <form onSubmit={(e) => { e.preventDefault(); fetchData(); }} className="flex w-full gap-2 xl:max-w-md">
             <div className="relative flex-1">
-              <Icon name="search" className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Icon name="search" className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
                 placeholder="Cari nama atau NIK warga..."
-                className="input pl-9"
+                className="input pl-10"
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
               />
@@ -73,45 +69,39 @@ export default function AdminPermohonanList() {
         </div>
 
         {loading ? (
-          <p className="text-slate-500 text-sm">Memuat...</p>
+          <div className="empty-state text-slate-500">Memuat permohonan...</div>
         ) : list.length === 0 ? (
-          <div className="text-center py-12">
-            <Icon name="inbox" className="w-12 h-12 text-slate-300 mx-auto mb-2" />
-            <p className="text-slate-500">Tidak ada permohonan.</p>
+          <div className="empty-state">
+            <Icon name="inbox" className="mx-auto mb-3 h-12 w-12 text-slate-300" />
+            <p className="font-semibold text-slate-700">Tidak ada permohonan</p>
+            <p className="mt-1 text-sm text-slate-500">Coba ubah filter atau kata pencarian.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="border-b border-slate-200">
-                <tr className="text-left text-slate-500">
-                  <th className="py-2 pr-2 font-medium">Tanggal</th>
-                  <th className="py-2 pr-2 font-medium">Warga</th>
-                  <th className="py-2 pr-2 font-medium">Jenis Surat</th>
-                  <th className="py-2 pr-2 font-medium">Status</th>
-                  <th className="py-2"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {list.map((p) => (
-                  <tr key={p.id} className="hover:bg-slate-50">
-                    <td className="py-3 pr-2">
-                      {new Date(p.createdAt).toLocaleDateString('id-ID')}
-                    </td>
-                    <td className="py-3 pr-2">
-                      <div className="font-medium">{p.warga?.nama_lengkap}</div>
-                      <div className="text-xs text-slate-500">{p.warga?.nik}</div>
-                    </td>
-                    <td className="py-3 pr-2">{p.template?.nama}</td>
-                    <td className="py-3 pr-2"><StatusBadge status={p.status} /></td>
-                    <td className="py-3 text-right">
-                      <Link to={`/admin/permohonan/${p.id}`} className="text-admin-600 hover:underline font-medium">
-                        Review
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="space-y-3">
+            {list.map((p) => (
+              <Link
+                key={p.id}
+                to={`/admin/permohonan/${p.id}`}
+                className="group flex flex-col gap-3 rounded-3xl border border-slate-100 bg-white p-4 transition-all hover:-translate-y-0.5 hover:border-admin-100 hover:shadow-lg lg:flex-row lg:items-center lg:justify-between"
+              >
+                <div className="flex min-w-0 items-start gap-3">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-admin-50 text-admin-700">
+                    <Icon name="inbox" className="w-6 h-6" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="font-black text-slate-900">{p.template?.nama}</div>
+                    <div className="mt-1 text-sm text-slate-500">{p.warga?.nama_lengkap} · <span className="font-mono">{p.warga?.nik}</span></div>
+                    <div className="mt-2 text-xs font-medium text-slate-400">Masuk {new Date(p.createdAt).toLocaleString('id-ID')}</div>
+                  </div>
+                </div>
+                <div className="flex shrink-0 items-center justify-between gap-3 lg:justify-end">
+                  <StatusBadge status={p.status} />
+                  <span className="inline-flex items-center rounded-2xl bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-700 group-hover:bg-admin-50 group-hover:text-admin-700">
+                    Review <Icon name="arrowRight" className="ml-1 h-4 w-4" />
+                  </span>
+                </div>
+              </Link>
+            ))}
           </div>
         )}
       </div>

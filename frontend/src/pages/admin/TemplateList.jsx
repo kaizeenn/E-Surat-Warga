@@ -41,91 +41,92 @@ export default function TemplateList() {
 
   return (
     <AdminLayout>
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Kelola Template Surat</h1>
-          <p className="text-slate-500">Tambah, edit, atau nonaktifkan jenis surat yang tersedia.</p>
+      <section className="page-hero">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="page-kicker">Konfigurasi Surat</p>
+            <h1 className="page-title">Kelola Template Surat</h1>
+            <p className="page-subtitle">Atur jenis surat, field form, dan status aktif layanan surat yang tersedia untuk warga.</p>
+          </div>
+          <Link to="/admin/template/baru" className="btn-admin-primary self-start md:self-center">
+            <Icon name="plus" className="w-4 h-4 mr-2" />
+            Template Baru
+          </Link>
         </div>
-        <Link to="/admin/template/baru" className="btn-admin-primary">
-          <Icon name="plus" className="w-4 h-4 mr-2" />
-          Template Baru
-        </Link>
-      </div>
+      </section>
 
-      <div className="card">
+      <div className="table-shell p-4 md:p-6">
         {loading ? (
-          <p className="text-slate-500 text-sm">Memuat...</p>
+          <div className="empty-state text-slate-500">Memuat template...</div>
         ) : list.length === 0 ? (
-          <div className="text-center py-12">
-            <Icon name="document" className="w-12 h-12 text-slate-300 mx-auto mb-2" />
-            <p className="text-slate-500">Belum ada template.</p>
+          <div className="empty-state">
+            <Icon name="document" className="mx-auto mb-3 h-12 w-12 text-slate-300" />
+            <p className="font-semibold text-slate-700">Belum ada template</p>
+            <p className="mt-1 text-sm text-slate-500">Tambahkan template surat pertama Anda.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="border-b border-slate-200">
-                <tr className="text-left text-slate-500">
-                  <th className="py-2 pr-2 font-medium">Kode</th>
-                  <th className="py-2 pr-2 font-medium">Nama</th>
-                  <th className="py-2 pr-2 font-medium">File HTML</th>
-                  <th className="py-2 pr-2 font-medium">Field</th>
-                  <th className="py-2 pr-2 font-medium">Status</th>
-                  <th className="py-2 text-right">Aksi</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {list.map((t) => {
-                  let fields = t.fields;
-                  if (typeof fields === 'string') {
-                    try { fields = JSON.parse(fields); } catch { fields = []; }
-                  }
-                  return (
-                    <tr key={t.id} className="hover:bg-slate-50">
-                      <td className="py-3 pr-2 font-mono text-xs">{t.kode}</td>
-                      <td className="py-3 pr-2 font-medium">{t.nama}</td>
-                      <td className="py-3 pr-2 text-xs text-slate-500 font-mono">{t.file_template}</td>
-                      <td className="py-3 pr-2">{Array.isArray(fields) ? fields.length : 0} field</td>
-                      <td className="py-3 pr-2">
-                        {t.aktif ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-emerald-100 text-emerald-700">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                            Aktif
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-slate-200 text-slate-600">
-                            <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
-                            Nonaktif
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-3 text-right whitespace-nowrap space-x-3">
-                        <button
-                          onClick={() => toggle(t)}
-                          className="text-slate-600 hover:underline text-xs"
-                        >
-                          {t.aktif ? 'Nonaktifkan' : 'Aktifkan'}
-                        </button>
-                        <Link
-                          to={`/admin/template/${t.id}/edit`}
-                          className="text-admin-600 hover:underline font-medium"
-                        >
-                          Edit
-                        </Link>
-                        <button
-                          onClick={() => remove(t)}
-                          className="text-red-600 hover:underline font-medium"
-                        >
-                          Hapus
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+          <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+            {list.map((t) => {
+              let fields = t.fields;
+              if (typeof fields === 'string') {
+                try { fields = JSON.parse(fields); } catch { fields = []; }
+              }
+              let persyaratan = t.persyaratan;
+              if (typeof persyaratan === 'string') {
+                try { persyaratan = JSON.parse(persyaratan); } catch { persyaratan = []; }
+              }
+              return (
+                <div key={t.id} className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex min-w-0 items-start gap-3">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-admin-50 text-admin-700">
+                        <Icon name="document" className="w-6 h-6" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-mono text-xs font-bold text-admin-700">{t.kode}</p>
+                        <h3 className="mt-1 font-black text-slate-900">{t.nama}</h3>
+                        <p className="mt-1 line-clamp-2 text-sm text-slate-500">{t.deskripsi}</p>
+                      </div>
+                    </div>
+                    {t.aktif ? (
+                      <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700">Aktif</span>
+                    ) : (
+                      <span className="rounded-full bg-slate-200 px-3 py-1 text-xs font-bold text-slate-600">Nonaktif</span>
+                    )}
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-3 gap-2 text-xs">
+                    <InfoTile label="Field" value={`${Array.isArray(fields) ? fields.length : 0}`} />
+                    <InfoTile label="Berkas" value={`${Array.isArray(persyaratan) ? persyaratan.length : 0}`} />
+                    <InfoTile label="HTML" value={t.file_template || '-'} mono />
+                  </div>
+
+                  <div className="mt-4 flex flex-wrap justify-end gap-2">
+                    <button onClick={() => toggle(t)} className="btn-secondary text-xs">
+                      {t.aktif ? 'Nonaktifkan' : 'Aktifkan'}
+                    </button>
+                    <Link to={`/admin/template/${t.id}/edit`} className="btn-admin-primary text-xs">
+                      Edit
+                    </Link>
+                    <button onClick={() => remove(t)} className="btn-danger text-xs">
+                      Hapus
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
     </AdminLayout>
+  );
+}
+
+function InfoTile({ label, value, mono }) {
+  return (
+    <div className="rounded-2xl bg-slate-50 p-3">
+      <p className="text-slate-400">{label}</p>
+      <p className={`mt-1 truncate font-bold text-slate-700 ${mono ? 'font-mono text-[11px]' : ''}`}>{value}</p>
+    </div>
   );
 }

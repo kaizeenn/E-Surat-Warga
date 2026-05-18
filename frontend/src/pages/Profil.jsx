@@ -6,10 +6,6 @@ import WargaLayout from './warga/WargaLayout';
 import AdminLayout from './admin/AdminLayout';
 import Icon from '../components/Icon';
 
-/**
- * Halaman kelola profil — dipakai oleh warga & admin.
- * Render layout sesuai role-nya.
- */
 export default function Profil() {
   const { user, isAdmin, isWarga, refreshUser } = useAuth();
 
@@ -18,20 +14,16 @@ export default function Profil() {
   const [loading, setLoading] = useState(false);
   const [ttdLoading, setTtdLoading] = useState(false);
   const [ttdImage, setTtdImage] = useState('');
-
-  // Password form
   const [pw, setPw] = useState({ password: '', confirm: '' });
   const [pwLoading, setPwLoading] = useState(false);
 
   useEffect(() => {
-    // Ambil data terbaru dari server
     api.get('/auth/me').then((res) => {
       const u = res.data.data.user;
       setForm({
         nama_lengkap: u.nama_lengkap || '',
         email: u.email || '',
         no_hp: u.no_hp || '',
-        // warga only
         tempat_lahir: u.tempat_lahir || '',
         tanggal_lahir: u.tanggal_lahir ? String(u.tanggal_lahir).slice(0, 10) : '',
         jenis_kelamin: u.jenis_kelamin || '',
@@ -39,7 +31,6 @@ export default function Profil() {
         agama: u.agama || '',
         pekerjaan: u.pekerjaan || '',
         nik: u.nik || '',
-        // admin only
         jabatan: u.jabatan || '',
       });
       setTtdImage(u.ttd_image || '');
@@ -52,7 +43,6 @@ export default function Profil() {
     e.preventDefault();
     setLoading(true);
     try {
-      // jangan kirim email & nik (tidak boleh diubah)
       const payload = { ...form };
       delete payload.email;
       delete payload.nik;
@@ -139,213 +129,253 @@ export default function Profil() {
 
   const Wrapper = isAdmin ? AdminLayout : WargaLayout;
   const accent = isAdmin ? 'admin' : 'warga';
+  const accentText = isAdmin ? 'text-admin-700' : 'text-warga-700';
+  const accentBg = isAdmin ? 'bg-admin-50' : 'bg-warga-50';
+  const accentSolid = isAdmin ? 'bg-admin-600' : 'bg-warga-600';
+  const primaryBtn = isAdmin ? 'btn-admin-primary' : 'btn-primary';
   const fileBase = API_URL.replace(/\/api\/?$/, '');
+
+  const tabs = [
+    { key: 'data', label: 'Data Diri', icon: 'user' },
+    { key: 'password', label: 'Password', icon: 'shield' },
+    ...(isAdmin ? [{ key: 'ttd', label: 'TTD Digital', icon: 'signature' }] : []),
+  ];
 
   const content = (
     <>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">Kelola Profil</h1>
-        <p className="text-slate-500">Perbarui data diri & password akun.</p>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex gap-1 bg-slate-100 rounded-lg p-1 mb-6 w-fit">
-        <button
-          onClick={() => setTab('data')}
-          className={`px-4 py-1.5 text-sm rounded-md transition-colors ${
-            tab === 'data' ? 'bg-white shadow-sm font-medium' : 'text-slate-600'
-          }`}
-        >
-          <Icon name="user" className="w-4 h-4 inline mr-1.5" />
-          Data Diri
-        </button>
-        <button
-          onClick={() => setTab('password')}
-          className={`px-4 py-1.5 text-sm rounded-md transition-colors ${
-            tab === 'password' ? 'bg-white shadow-sm font-medium' : 'text-slate-600'
-          }`}
-        >
-          <Icon name="shield" className="w-4 h-4 inline mr-1.5" />
-          Password
-        </button>
-        {isAdmin && (
-          <button
-            onClick={() => setTab('ttd')}
-            className={`px-4 py-1.5 text-sm rounded-md transition-colors ${
-              tab === 'ttd' ? 'bg-white shadow-sm font-medium' : 'text-slate-600'
-            }`}
-          >
-            <Icon name="document" className="w-4 h-4 inline mr-1.5" />
-            TTD Digital
-          </button>
-        )}
-      </div>
-
-      {tab === 'data' && (
-        <form onSubmit={submitProfil} className="card max-w-3xl">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Field readonly */}
-            <Field label="Email" readOnly value={form.email || ''} hint="Email tidak dapat diubah" />
-            {isWarga && (
-              <Field label="NIK" readOnly value={form.nik || ''} hint="NIK tidak dapat diubah" />
-            )}
-
-            <Field label="Nama Lengkap" name="nama_lengkap" value={form.nama_lengkap} onChange={onChange} required />
-            <Field label="No. HP" name="no_hp" value={form.no_hp} onChange={onChange} />
-
-            {isAdmin && (
-              <Field label="Jabatan" name="jabatan" value={form.jabatan} onChange={onChange} />
-            )}
-
-            {isWarga && (
-              <>
-                <Field label="Tempat Lahir" name="tempat_lahir" value={form.tempat_lahir} onChange={onChange} />
-                <Field label="Tanggal Lahir" name="tanggal_lahir" type="date" value={form.tanggal_lahir} onChange={onChange} />
-
-                <div>
-                  <label className="block text-sm font-medium mb-1">Jenis Kelamin</label>
-                  <select name="jenis_kelamin" value={form.jenis_kelamin} onChange={onChange} className="input">
-                    <option value="">— Pilih —</option>
-                    <option value="laki-laki">Laki-laki</option>
-                    <option value="perempuan">Perempuan</option>
-                  </select>
-                </div>
-                <Field label="Agama" name="agama" value={form.agama} onChange={onChange} />
-                <Field label="Pekerjaan" name="pekerjaan" value={form.pekerjaan} onChange={onChange} />
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium mb-1">Alamat</label>
-                  <textarea name="alamat" value={form.alamat} onChange={onChange} rows="2" className="input" />
-                </div>
-              </>
-            )}
+      <section className="page-hero relative overflow-hidden">
+        <div className={`absolute right-0 top-0 h-40 w-40 rounded-full blur-3xl ${isAdmin ? 'bg-admin-100' : 'bg-warga-100'}`} />
+        <div className="relative grid grid-cols-1 gap-5 lg:grid-cols-3 lg:items-center">
+          <div className="lg:col-span-2">
+            <p className="page-kicker">Pengaturan Akun</p>
+            <h1 className="page-title">Kelola Profil</h1>
+            <p className="page-subtitle">Perbarui data diri, keamanan akun, dan informasi yang digunakan dalam layanan e-Surat Desa.</p>
           </div>
-
-          <div className="mt-6 flex justify-end">
-            <button type="submit" disabled={loading} className={`btn-${accent === 'warga' ? 'primary' : 'admin-primary'}`}>
-              {loading ? 'Menyimpan...' : 'Simpan Perubahan'}
-            </button>
-          </div>
-        </form>
-      )}
-
-      {tab === 'password' && (
-        <form onSubmit={submitPassword} className="card max-w-md">
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Password Baru</label>
-              <input
-                type="password"
-                value={pw.password}
-                onChange={(e) => setPw({ ...pw, password: e.target.value })}
-                className="input"
-                placeholder="Min. 6 karakter"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Konfirmasi Password</label>
-              <input
-                type="password"
-                value={pw.confirm}
-                onChange={(e) => setPw({ ...pw, confirm: e.target.value })}
-                className="input"
-                placeholder="Ulangi password"
-                required
-              />
-            </div>
-            <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800">
-              <Icon name="info" className="w-5 h-5 shrink-0 mt-0.5" />
-              <span>Setelah ubah password, Anda tetap login. Gunakan password baru saat login berikutnya.</span>
-            </div>
-            <button type="submit" disabled={pwLoading} className={`btn-${accent === 'warga' ? 'primary' : 'admin-primary'} w-full`}>
-              {pwLoading ? 'Menyimpan...' : 'Ubah Password'}
-            </button>
-          </div>
-        </form>
-      )}
-
-      {isAdmin && tab === 'ttd' && (
-        <div className="card max-w-2xl">
-          <div className="mb-5">
-            <h2 className="text-lg font-semibold">TTD Digital Admin</h2>
-            <p className="text-sm text-slate-500 mt-1">
-              Upload gambar tanda tangan agar otomatis tampil pada PDF surat yang Anda approve.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-            <div>
-              <label className="block text-sm font-medium mb-2">Preview TTD Saat Ini</label>
-              <div className="h-40 border border-dashed border-slate-300 rounded-xl bg-slate-50 flex items-center justify-center overflow-hidden">
-                {ttdImage ? (
-                  <img
-                    src={`${fileBase}${ttdImage}`}
-                    alt="TTD Digital"
-                    className="max-h-32 max-w-full object-contain"
-                  />
-                ) : (
-                  <div className="text-center text-slate-400 text-sm px-4">
-                    Belum ada TTD digital.
-                  </div>
-                )}
+          <div className="rounded-3xl border border-white/70 bg-white/75 p-4 shadow-sm backdrop-blur">
+            <div className="flex items-center gap-3">
+              <div className={`flex h-14 w-14 items-center justify-center rounded-2xl ${accentSolid} text-xl font-black text-white shadow-lg`}>
+                {(user?.nama_lengkap || user?.email || '?').slice(0, 1).toUpperCase()}
               </div>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">Upload Gambar TTD</label>
-                <input
-                  type="file"
-                  accept="image/png,image/jpeg,image/jpg,image/webp"
-                  onChange={uploadTtd}
-                  disabled={ttdLoading}
-                  className="block w-full text-sm text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-admin-50 file:text-admin-700 hover:file:bg-admin-100"
-                />
-                <p className="text-xs text-slate-400 mt-2">
-                  Format: PNG/JPG/WEBP. Maksimal 2MB. Disarankan gambar transparan dengan background putih/bening.
-                </p>
-              </div>
-
-              <div className="flex gap-2">
-                {ttdImage && (
-                  <button
-                    type="button"
-                    onClick={deleteTtd}
-                    disabled={ttdLoading}
-                    className="btn-danger"
-                  >
-                    {ttdLoading ? 'Memproses...' : 'Hapus TTD'}
-                  </button>
-                )}
-              </div>
-
-              <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
-                <Icon name="info" className="w-5 h-5 shrink-0 mt-0.5" />
-                <span>
-                  TTD akan dipakai untuk surat baru setelah proses approve. PDF lama tidak berubah otomatis.
+              <div className="min-w-0">
+                <p className="truncate font-black text-slate-900">{user?.nama_lengkap || 'Pengguna'}</p>
+                <p className="truncate text-sm text-slate-500">{user?.email}</p>
+                <span className={`mt-2 inline-flex rounded-full px-3 py-1 text-xs font-bold ${accentBg} ${accentText}`}>
+                  {isAdmin ? 'Admin Desa' : 'Warga'}
                 </span>
               </div>
             </div>
           </div>
         </div>
-      )}
+      </section>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
+        <aside className="lg:col-span-1">
+          <div className="card p-3">
+            <div className="space-y-2">
+              {tabs.map((t) => (
+                <button
+                  key={t.key}
+                  onClick={() => setTab(t.key)}
+                  className={`flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-bold transition-all ${
+                    tab === t.key
+                      ? `${accentBg} ${accentText} shadow-sm`
+                      : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                  }`}
+                >
+                  <Icon name={t.icon} className="h-5 w-5" />
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-4 card bg-slate-950 text-white">
+            <Icon name="info" className="h-6 w-6 text-white/70" />
+            <h3 className="mt-3 font-black">Info Profil</h3>
+            <p className="mt-2 text-sm leading-relaxed text-slate-300">
+              Email dan NIK digunakan sebagai identitas akun, sehingga tidak bisa diubah dari halaman ini.
+            </p>
+          </div>
+        </aside>
+
+        <main className="lg:col-span-3">
+          {tab === 'data' && (
+            <form onSubmit={submitProfil} className="card">
+              <SectionHeader
+                icon="user"
+                title="Data Diri"
+                subtitle="Lengkapi profil agar data pemohon pada surat otomatis lebih akurat."
+                accentBg={accentBg}
+                accentText={accentText}
+              />
+
+              <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+                <Field label="Email" readOnly value={form.email || ''} hint="Email tidak dapat diubah" />
+                {isWarga && <Field label="NIK" readOnly value={form.nik || ''} hint="NIK tidak dapat diubah" />}
+
+                <Field label="Nama Lengkap" name="nama_lengkap" value={form.nama_lengkap} onChange={onChange} required />
+                <Field label="No. HP" name="no_hp" value={form.no_hp} onChange={onChange} placeholder="Contoh: 081234567890" />
+
+                {isAdmin && <Field label="Jabatan" name="jabatan" value={form.jabatan} onChange={onChange} placeholder="Contoh: Kepala Desa / Admin Desa" />}
+
+                {isWarga && (
+                  <>
+                    <Field label="Tempat Lahir" name="tempat_lahir" value={form.tempat_lahir} onChange={onChange} />
+                    <Field label="Tanggal Lahir" name="tanggal_lahir" type="date" value={form.tanggal_lahir} onChange={onChange} />
+
+                    <div>
+                      <label className="mb-1.5 block text-sm font-bold text-slate-700">Jenis Kelamin</label>
+                      <select name="jenis_kelamin" value={form.jenis_kelamin} onChange={onChange} className="input">
+                        <option value="">— Pilih —</option>
+                        <option value="laki-laki">Laki-laki</option>
+                        <option value="perempuan">Perempuan</option>
+                      </select>
+                    </div>
+                    <Field label="Agama" name="agama" value={form.agama} onChange={onChange} />
+                    <Field label="Pekerjaan" name="pekerjaan" value={form.pekerjaan} onChange={onChange} />
+                    <div className="md:col-span-2">
+                      <label className="mb-1.5 block text-sm font-bold text-slate-700">Alamat</label>
+                      <textarea name="alamat" value={form.alamat} onChange={onChange} rows="3" className="input resize-y" placeholder="Masukkan alamat lengkap" />
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <div className="mt-6 flex justify-end border-t border-slate-100 pt-5">
+                <button type="submit" disabled={loading} className={primaryBtn}>
+                  <Icon name="check" className="mr-2 h-4 w-4" />
+                  {loading ? 'Menyimpan...' : 'Simpan Perubahan'}
+                </button>
+              </div>
+            </form>
+          )}
+
+          {tab === 'password' && (
+            <form onSubmit={submitPassword} className="card max-w-xl">
+              <SectionHeader
+                icon="shield"
+                title="Keamanan Akun"
+                subtitle="Gunakan password yang kuat untuk menjaga akses akun e-Surat Desa."
+                accentBg={accentBg}
+                accentText={accentText}
+              />
+
+              <div className="mt-6 space-y-4">
+                <Field
+                  label="Password Baru"
+                  type="password"
+                  value={pw.password}
+                  onChange={(e) => setPw({ ...pw, password: e.target.value })}
+                  placeholder="Minimal 6 karakter"
+                  required
+                />
+                <Field
+                  label="Konfirmasi Password"
+                  type="password"
+                  value={pw.confirm}
+                  onChange={(e) => setPw({ ...pw, confirm: e.target.value })}
+                  placeholder="Ulangi password baru"
+                  required
+                />
+                <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+                  <Icon name="info" className="mt-0.5 h-5 w-5 shrink-0" />
+                  <span>Setelah ubah password, Anda tetap login. Gunakan password baru saat login berikutnya.</span>
+                </div>
+                <button type="submit" disabled={pwLoading} className={`${primaryBtn} w-full`}>
+                  {pwLoading ? 'Menyimpan...' : 'Ubah Password'}
+                </button>
+              </div>
+            </form>
+          )}
+
+          {isAdmin && tab === 'ttd' && (
+            <div className="card">
+              <SectionHeader
+                icon="signature"
+                title="TTD Digital Admin"
+                subtitle="Upload gambar tanda tangan agar otomatis tampil pada PDF surat yang Anda approve."
+                accentBg={accentBg}
+                accentText={accentText}
+              />
+
+              <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+                <div className="rounded-3xl border border-dashed border-slate-200 bg-slate-50 p-5">
+                  <p className="mb-3 text-sm font-bold text-slate-700">Preview TTD Saat Ini</p>
+                  <div className="flex h-56 items-center justify-center overflow-hidden rounded-3xl bg-white shadow-inner">
+                    {ttdImage ? (
+                      <img src={`${fileBase}${ttdImage}`} alt="TTD Digital" className="max-h-44 max-w-full object-contain" />
+                    ) : (
+                      <div className="px-6 text-center text-sm text-slate-400">
+                        <Icon name="signature" className="mx-auto mb-3 h-10 w-10 text-slate-300" />
+                        Belum ada TTD digital.
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <label className="group flex cursor-pointer flex-col items-center justify-center rounded-3xl border-2 border-dashed border-admin-200 bg-admin-50/70 p-8 text-center transition-all hover:-translate-y-0.5 hover:bg-admin-50 hover:shadow-lg">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-admin-700 shadow-sm">
+                      <Icon name="plus" className="h-6 w-6" />
+                    </div>
+                    <p className="mt-4 font-black text-admin-900">Upload Gambar TTD</p>
+                    <p className="mt-1 text-sm text-admin-800">PNG, JPG, JPEG, atau WEBP. Maksimal 2MB.</p>
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/jpg,image/webp"
+                      onChange={uploadTtd}
+                      disabled={ttdLoading}
+                      className="hidden"
+                    />
+                  </label>
+
+                  {ttdImage && (
+                    <button type="button" onClick={deleteTtd} disabled={ttdLoading} className="btn-danger w-full">
+                      {ttdLoading ? 'Memproses...' : 'Hapus TTD'}
+                    </button>
+                  )}
+
+                  <div className="flex items-start gap-3 rounded-2xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800">
+                    <Icon name="info" className="mt-0.5 h-5 w-5 shrink-0" />
+                    <span>TTD akan dipakai untuk surat baru setelah proses approve. PDF lama tidak berubah otomatis.</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </main>
+      </div>
     </>
   );
 
   return <Wrapper>{content}</Wrapper>;
 }
 
+function SectionHeader({ icon, title, subtitle, accentBg, accentText }) {
+  return (
+    <div className="flex items-start gap-3 border-b border-slate-100 pb-5">
+      <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${accentBg} ${accentText}`}>
+        <Icon name={icon} className="h-6 w-6" />
+      </div>
+      <div>
+        <h2 className="text-xl font-black text-slate-900">{title}</h2>
+        <p className="mt-1 text-sm leading-relaxed text-slate-500">{subtitle}</p>
+      </div>
+    </div>
+  );
+}
+
 function Field({ label, hint, readOnly, type = 'text', ...rest }) {
   return (
     <div>
-      <label className="block text-sm font-medium mb-1">{label}</label>
+      <label className="mb-1.5 block text-sm font-bold text-slate-700">{label}</label>
       <input
         type={type}
         readOnly={readOnly}
-        className={`input ${readOnly ? 'bg-slate-50 text-slate-500 cursor-not-allowed' : ''}`}
+        className={`input ${readOnly ? 'cursor-not-allowed bg-slate-50 text-slate-500' : ''}`}
         {...rest}
       />
-      {hint && <p className="text-xs text-slate-400 mt-1">{hint}</p>}
+      {hint && <p className="mt-1.5 text-xs text-slate-400">{hint}</p>}
     </div>
   );
 }
