@@ -207,13 +207,12 @@ JWT_SECRET=ganti_dengan_string_acak_panjang_minimal_32_karakter
 JWT_EXPIRES_IN=7d
 
 # Info RT/RW (tampil di kop surat PDF)
-RT_NOMOR=003
-RW_NOMOR=005
-KELURAHAN=Kelurahan Wonorejo
-KECAMATAN=Kecamatan Rungkut
-KOTA=Kota Surabaya
+RT_NOMOR=02
+RW_NOMOR=03
+KELURAHAN=Saronggi
+KECAMATAN=Saronggi
+KOTA=Sumenep
 PROVINSI=Jawa Timur
-KODE_POS=60296
 ```
 
 ### Frontend — `frontend/.env`
@@ -344,6 +343,7 @@ yang relevan untuk operasional admin.
 | nama_usaha | VARCHAR(120) | Nama usaha untuk SKU |
 | jenis_usaha | VARCHAR(120) | Jenis usaha untuk SKU |
 | alamat_usaha | TEXT | Alamat usaha untuk SKU |
+| tahun_berdiri | VARCHAR(4) | Tahun berdiri usaha untuk SKU |
 | file_ktp | VARCHAR(255) | Path file KTP warga |
 | file_kk | VARCHAR(255) | Path file KK warga |
 | status_ktp | ENUM | `pending`, `valid`, `tidak_valid` |
@@ -368,7 +368,7 @@ yang relevan untuk operasional admin.
 | bulan | TINYINT | Bulan penerbitan |
 | urutan | INT | Nomor urut dalam bulan tersebut |
 
-> Nomor surat otomatis format: `001/DS-RT003/V/2025`
+> Nomor surat otomatis format: `001/DS-RT02/V/2025`
 
 ### Diagram Relasi (ERD)
 
@@ -448,13 +448,28 @@ menyimpan `type` pada JWT untuk kebutuhan middleware.
 
 **POST `/api/surat/ajukan`**
 
-Request body:
+Request body (contoh Domisili):
 ```json
 {
   "templateKode": "DOMISILI",
   "keperluan": "Keperluan melamar pekerjaan",
   "dataTambahan": {
     "tujuanInstansi": "PT. Maju Bersama Surabaya"
+  }
+}
+```
+
+Request body (contoh Surat Keterangan Usaha):
+```json
+{
+  "templateKode": "USAHA",
+  "keperluan": "Keperluan izin usaha dari pemerintah",
+  "dataTambahan": {
+    "namaUsaha": "Toko Elektronik Jaya",
+    "jenisUsaha": "Ritel Barang Elektronik",
+    "alamatUsaha": "Jl. Merdeka No. 42 Saronggi",
+    "tahunBerdiri": "2020",
+    "nomorKk": "3275XXXXXXXXXXXX"
   }
 }
 ```
@@ -481,7 +496,7 @@ Response:
   "success": true,
   "message": "Surat berhasil diterbitkan",
   "data": {
-    "nomorSurat": "042/DS-RT003/V/2025",
+    "nomorSurat": "042/DS-RT02/V/2025",
     "filePdf": "/uploads/surat/surat-042-2025.pdf",
     "tanggalTerbit": "2025-05-06T10:15:00.000Z",
     "diapproveOleh": {
