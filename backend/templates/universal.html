@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: 'Times New Roman', Times, serif; font-size: 12pt; color: #000; margin: 0; padding: 40px; }
+    .kop { text-align: center; border-bottom: 3px double #000; padding-bottom: 10px; margin-bottom: 20px; }
+    .kop h1 { font-size: 16pt; margin: 0; text-transform: uppercase; letter-spacing: 1px; }
+    .kop h2 { font-size: 13pt; margin: 4px 0 0 0; text-transform: uppercase; }
+    .kop p { font-size: 10pt; margin: 2px 0 0 0; }
+    .judul { text-align: center; margin: 20px 0 6px 0; }
+    .judul h3 { font-size: 13pt; text-decoration: underline; text-transform: uppercase; margin: 0; }
+    .nomor { text-align: center; margin-bottom: 18px; font-size: 11pt; }
+    .isi { text-align: justify; line-height: 1.7; }
+    table.isi { width: 100%; border-collapse: collapse; margin: 12px 0 12px 0; }
+    table.isi td { padding: 3px 10px 3px 0; vertical-align: top; }
+    table.isi td.label { width: 200px; }
+    table.isi td.sep { width: 16px; }
+    .penutup { margin-top: 12px; line-height: 1.7; text-align: justify; }
+    .ttd { margin-top: 36px; width: 100%; }
+    .ttd .kanan { text-align: center; width: 45%; padding-left: 55%; }
+    .ttd-img { display: block; max-width: 150px; max-height: 70px; object-fit: contain; margin: 12px auto 4px auto; }
+    .ttd-space { height: 82px; }
+    .nama-ttd { margin-top: 4px; font-weight: bold; text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="kop">
+    <h1>Pemerintah Kabupaten {{KOTA}}</h1>
+    <h2>Desa {{KELURAHAN}} — Kecamatan {{KECAMATAN}}</h2>
+    <h2>Rukun Tetangga {{RT_NOMOR}} / Rukun Warga {{RW_NOMOR}}</h2>
+    <p>Provinsi {{PROVINSI}}</p>
+  </div>
+
+  <div class="judul">
+    <h3>{{NAMA_SURAT}}</h3>
+  </div>
+  <div class="nomor">Nomor: {{NOMOR_SURAT}}</div>
+
+  <div class="isi">
+    <p>Yang bertanda tangan di bawah ini, {{ADMIN_JABATAN}} RT {{RT_NOMOR}}/RW {{RW_NOMOR}} Desa {{KELURAHAN}}, Kecamatan {{KECAMATAN}}, dengan ini menerangkan bahwa:</p>
+
+    <table class="isi">
+      <tr><td class="label">Nama</td><td class="sep">:</td><td><b>{{NAMA}}</b></td></tr>
+      <tr><td class="label">NIK</td><td class="sep">:</td><td>{{NIK}}</td></tr>
+      <tr><td class="label">Tempat/Tgl Lahir</td><td class="sep">:</td><td>{{TTL}}</td></tr>
+      <tr><td class="label">Jenis Kelamin</td><td class="sep">:</td><td>{{JENIS_KELAMIN}}</td></tr>
+      <tr><td class="label">Agama</td><td class="sep">:</td><td>{{AGAMA}}</td></tr>
+      <tr><td class="label">Pekerjaan</td><td class="sep">:</td><td>{{PEKERJAAN}}</td></tr>
+      <tr><td class="label">Alamat</td><td class="sep">:</td><td>{{ALAMAT}}</td></tr>
+      {{EXTRA_ROWS}}
+    </table>
+
+    <div class="penutup">
+      <p>{{KALIMAT_PENUTUP}}</p>
+      <p>Demikian surat keterangan ini dibuat dengan sebenarnya untuk dapat dipergunakan sebagaimana mestinya.</p>
+    </div>
+  </div>
+
+  <div class="ttd">
+    <div class="kanan">
+      {{KOTA}}, {{TANGGAL_TERBIT}}<br>
+      {{ADMIN_JABATAN}}
+      {{ADMIN_TTD_IMG}}
+      <div class="nama-ttd">{{ADMIN_NAMA}}</div>
+    </div>
+  </div>
+</body>
+</html>

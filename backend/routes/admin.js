@@ -2,10 +2,10 @@
  * Routes admin.
  * Sebagian query dibantu folder models agar memenuhi struktur MVC sederhana.
  *
- * Data pengajuan disimpan langsung di tabel permohonan_surat:
- * - keterangan/isian surat: nomor_kk, tujuan_instansi, tujuan_penggunaan, dll.
+ * Data pengajuan disimpan di tabel permohonan_surat:
+ * - data_form (JSON) untuk isian surat yang dinamis.
  * - file persyaratan: file_ktp dan file_kk.
- * - status verifikasi: status_ktp dan status_kk.
+ * - lampiran KTP/KK hanya disimpan sebagai file tanpa status verifikasi.
  */
 const router = require('express').Router();
 const multer = require('multer');
@@ -42,56 +42,45 @@ function handleTtdUpload(req, res, next) {
   });
 }
 
-// Metadata template dibuat statis agar database tidak terlalu banyak tabel.
-const TEMPLATE_META = {
-  DOMISILI: {
-    fields: [
-      { name: 'tujuanInstansi', label: 'Tujuan Instansi/Pihak', type: 'text', required: true },
-      { name: 'nomorKk', label: 'Nomor KK', type: 'text', required: true },
-    ],
-  },
-  TIDAK_MAMPU: {
-    fields: [
-      { name: 'tujuanPenggunaan', label: 'Tujuan Penggunaan Surat', type: 'text', required: true },
-      { name: 'nomorKk', label: 'Nomor KK', type: 'text', required: true },
-      { name: 'kondisiEkonomi', label: 'Ringkasan Kondisi Ekonomi', type: 'textarea', required: true },
-    ],
-  },
-  USAHA: {
-    fields: [
-      { name: 'namaUsaha', label: 'Nama Usaha', type: 'text', required: true },
-      { name: 'jenisUsaha', label: 'Jenis Usaha', type: 'text', required: true },
-      { name: 'alamatUsaha', label: 'Alamat Usaha', type: 'text', required: true },
-      { name: 'tahunBerdiri', label: 'Tahun Berdiri', type: 'number', required: true },
-      { name: 'nomorKk', label: 'Nomor KK', type: 'text', required: true },
-    ],
-  },
-};
-
+// Persyaratan default tetap hardcoded karena selalu KTP + KK.
 const DEFAULT_PERSYARATAN = [
   { key: 'ktp', label: 'Fotokopi KTP', required: true, note: 'KTP pemohon yang masih berlaku' },
   { key: 'kk', label: 'Fotokopi KK', required: true, note: 'Kartu Keluarga terbaru' },
 ];
 
+// Parse JSON string jika perlu
+function parseJson(value, fallback) {
+  if (typeof value === 'string') {
+    try { return JSON.parse(value); } catch { return fallback; }
+  }
+  return value ?? fallback;
+}
+
+// Normalisasi field agar punya name (untuk frontend) dan key (untuk backend)
+function normalizeFields(fields) {
+  if (!Array.isArray(fields)) return [];
+  return fields
+    .filter(Boolean)
+    .map((f) => ({
+      ...f,
+      name: f.name || f.key,
+      key: f.key || f.name,
+    }))
+    .filter((f) => f.name);
+}
+
 function withTemplateMeta(tpl) {
+  const fields = normalizeFields(parseJson(tpl.fields, []));
   return {
     ...tpl,
-    fields: TEMPLATE_META[tpl.kode]?.fields || [],
+    fields,
     persyaratan: DEFAULT_PERSYARATAN,
   };
 }
 
+// Ambil data_form JSON sebagai data_tambahan untuk kompatibilitas API
 function buildDataTambahan(row) {
-  return {
-    nomorKk: row.nomor_kk || '',
-    tujuanInstansi: row.tujuan_instansi || '',
-    tujuanPenggunaan: row.tujuan_penggunaan || '',
-    kondisiEkonomi: row.kondisi_ekonomi || '',
-    namaUsaha: row.nama_usaha || '',
-    jenisUsaha: row.jenis_usaha || '',
-    alamatUsaha: row.alamat_usaha || '',
-    tahunBerdiri: row.tahun_berdiri || '',
-  };
+  return parseJson(row.data_form, {});
 }
 
 function buildLampiran(row) {
@@ -104,10 +93,6 @@ function buildLampiran(row) {
       input_name: 'persyaratan_0',
       file_name: row.file_ktp ? path.basename(row.file_ktp) : null,
       file_url: row.file_ktp,
-      verification_status: row.status_ktp || 'pending',
-      verification_note: row.catatan_ktp || '',
-      verified_by: row.verified_ktp_by,
-      verified_at: row.verified_ktp_at,
     },
     {
       key: 'kk',
@@ -117,10 +102,6 @@ function buildLampiran(row) {
       input_name: 'persyaratan_1',
       file_name: row.file_kk ? path.basename(row.file_kk) : null,
       file_url: row.file_kk,
-      verification_status: row.status_kk || 'pending',
-      verification_note: row.catatan_kk || '',
-      verified_by: row.verified_kk_by,
-      verified_at: row.verified_kk_at,
     },
   ];
 }
@@ -216,32 +197,6 @@ router.get('/permohonan/:id', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-// PATCH /api/admin/permohonan/:id/lampiran/:index/verifikasi
-// index 0 = KTP, index 1 = KK.
-router.patch('/permohonan/:id/lampiran/:index/verifikasi', async (req, res, next) => {
-  try {
-    const { status, catatan } = req.body;
-    if (!['valid', 'tidak_valid', 'pending'].includes(status)) return res.status(400).json({ success: false, message: 'Status verifikasi tidak valid' });
-
-    const index = Number(req.params.index);
-    if (![0, 1].includes(index)) return res.status(404).json({ success: false, message: 'Lampiran tidak ditemukan' });
-
-    const [rows] = await db.query('SELECT * FROM permohonan_surat WHERE id = ? LIMIT 1', [req.params.id]);
-    if (!rows[0]) return res.status(404).json({ success: false, message: 'Permohonan tidak ditemukan' });
-
-    const prefix = index === 0 ? 'ktp' : 'kk';
-    await db.query(
-      `UPDATE permohonan_surat
-       SET status_${prefix} = ?, catatan_${prefix} = ?, verified_${prefix}_by = ?, verified_${prefix}_at = NOW(), admin_id = ?, updated_at = NOW()
-       WHERE id = ?`,
-      [status, catatan || '', req.user.id, req.user.id, req.params.id]
-    );
-
-    const [updated] = await db.query('SELECT * FROM permohonan_surat WHERE id = ? LIMIT 1', [req.params.id]);
-    res.json({ success: true, message: 'Verifikasi lampiran berhasil disimpan', data: buildLampiran(updated[0])[index] });
-  } catch (err) { next(err); }
-});
-
 // PATCH /api/admin/permohonan/:id/approve
 // Admin menyetujui permohonan, lalu sistem membuat nomor surat dan PDF.
 router.patch('/permohonan/:id/approve', async (req, res, next) => {
@@ -249,7 +204,7 @@ router.patch('/permohonan/:id/approve', async (req, res, next) => {
   try {
     await conn.beginTransaction();
     const [rows] = await conn.query(
-      `SELECT p.*, t.kode AS template_kode, t.nama AS template_nama, t.file_template,
+      `SELECT p.*, t.kode AS template_kode, t.nama AS template_nama, t.file_template, t.fields AS template_fields, t.kalimat_penutup AS template_kalimat_penutup,
               w.nama_lengkap AS warga_nama_lengkap, w.nik AS warga_nik, w.tempat_lahir AS warga_tempat_lahir,
               w.tanggal_lahir AS warga_tanggal_lahir, w.jenis_kelamin AS warga_jenis_kelamin, w.alamat AS warga_alamat,
               w.agama AS warga_agama, w.pekerjaan AS warga_pekerjaan, w.no_hp AS warga_no_hp,
@@ -265,7 +220,6 @@ router.patch('/permohonan/:id/approve', async (req, res, next) => {
     if (p.status === 'ditolak') { await conn.rollback(); return res.status(400).json({ success: false, message: 'Permohonan ini sudah ditolak' }); }
 
     if (!p.file_ktp || !p.file_kk) { await conn.rollback(); return res.status(400).json({ success: false, message: 'File KTP dan KK wajib ada sebelum approve' }); }
-    if (p.status_ktp !== 'valid' || p.status_kk !== 'valid') { await conn.rollback(); return res.status(400).json({ success: false, message: 'KTP dan KK wajib divalidasi sebelum approve' }); }
 
     const now = new Date();
     const tahun = now.getFullYear();
@@ -281,8 +235,8 @@ router.patch('/permohonan/:id/approve', async (req, res, next) => {
       nomor_surat: nomorSurat,
       tanggal_approve: now,
       keperluan: p.keperluan,
-      data_tambahan: buildDataTambahan(p),
-      template: { kode: p.template_kode, nama: p.template_nama, file_template: p.file_template },
+      data_form: buildDataTambahan(p),
+      template: { kode: p.template_kode, nama: p.template_nama, file_template: p.file_template, fields: p.template_fields, kalimat_penutup: p.template_kalimat_penutup },
       warga: {
         nama_lengkap: p.warga_nama_lengkap,
         nik: p.warga_nik,
@@ -409,15 +363,18 @@ router.get('/template/:id', async (req, res, next) => {
 // Admin membuat jenis surat baru. Field form dan persyaratan tetap mengikuti kode surat di backend.
 router.post('/template', async (req, res, next) => {
   try {
-    const { kode, nama, deskripsi, file_template, aktif } = req.body;
+    const { kode, nama, deskripsi, file_template, aktif, kalimat_penutup } = req.body;
+    let { fields } = req.body;
     if (!kode || !nama || !file_template) return res.status(400).json({ success: false, message: 'Kode, nama, dan file_template wajib diisi' });
     const [exists] = await db.query('SELECT id FROM template_surat WHERE kode = ? LIMIT 1', [kode.toUpperCase()]);
     if (exists.length) return res.status(409).json({ success: false, message: 'Kode template sudah ada' });
     if (!fs.existsSync(path.join(__dirname, '../templates', file_template))) return res.status(400).json({ success: false, message: `File template '${file_template}' tidak ditemukan di folder templates/` });
 
+    fields = normalizeFields(parseJson(fields, []));
+
     const [result] = await db.query(
-      'INSERT INTO template_surat (kode, nama, deskripsi, file_template, aktif, created_at, updated_at) VALUES (?, ?, ?, ?, ?, NOW(), NOW())',
-      [kode.toUpperCase(), nama, deskripsi || null, file_template, aktif !== undefined ? aktif : true]
+      'INSERT INTO template_surat (kode, nama, deskripsi, file_template, fields, kalimat_penutup, aktif, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())',
+      [kode.toUpperCase(), nama, deskripsi || null, file_template, JSON.stringify(fields), kalimat_penutup || null, aktif !== undefined ? aktif : true]
     );
     const [fresh] = await db.query('SELECT * FROM template_surat WHERE id = ?', [result.insertId]);
     res.status(201).json({ success: true, message: 'Template dibuat', data: withTemplateMeta(fresh[0]) });
@@ -430,9 +387,14 @@ router.put('/template/:id', async (req, res, next) => {
     const [rows] = await db.query('SELECT * FROM template_surat WHERE id = ? LIMIT 1', [req.params.id]);
     if (!rows[0]) return res.status(404).json({ success: false, message: 'Template tidak ditemukan' });
 
-    const allowed = ['nama', 'deskripsi', 'aktif', 'file_template'];
+    const allowed = ['nama', 'deskripsi', 'aktif', 'file_template', 'fields', 'kalimat_penutup'];
     const update = {};
     for (const key of allowed) if (req.body[key] !== undefined) update[key] = req.body[key];
+
+    if (update.fields !== undefined) {
+      update.fields = JSON.stringify(normalizeFields(parseJson(update.fields, [])));
+    }
+
     if (update.file_template && !fs.existsSync(path.join(__dirname, '../templates', update.file_template))) return res.status(400).json({ success: false, message: `File template '${update.file_template}' tidak ditemukan` });
 
     const keys = Object.keys(update);

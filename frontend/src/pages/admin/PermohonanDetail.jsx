@@ -14,7 +14,6 @@ export default function AdminPermohonanDetail() {
   const [acting, setActing] = useState(false);
   const [showTolak, setShowTolak] = useState(false);
   const [catatan, setCatatan] = useState('');
-  const [catatanLampiran, setCatatanLampiran] = useState({});
   const [previewFile, setPreviewFile] = useState(null);
 
   const fileBase = API_URL.replace(/\/api\/?$/, '');
@@ -73,21 +72,6 @@ export default function AdminPermohonanDetail() {
     }
   };
 
-  const verifikasiLampiran = async (idx, status) => {
-    setActing(true);
-    try {
-      await api.patch(`/admin/permohonan/${id}/lampiran/${idx}/verifikasi`, {
-        status,
-        catatan: catatanLampiran[idx] || '',
-      });
-      toast.success('Status lampiran diperbarui');
-      load();
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Gagal verifikasi lampiran');
-    } finally {
-      setActing(false);
-    }
-  };
 
   if (loading) {
     return <AdminLayout><p className="text-slate-500">Memuat...</p></AdminLayout>;
@@ -119,6 +103,14 @@ export default function AdminPermohonanDetail() {
     jenisUsaha: 'Jenis Usaha',
     alamatUsaha: 'Alamat Usaha',
     tahunBerdiri: 'Tahun Berdiri',
+    tujuan_instansi: 'Tujuan Instansi/Pihak',
+    tujuan_penggunaan: 'Tujuan Penggunaan Surat',
+    nomor_kk: 'Nomor KK',
+    kondisi_ekonomi: 'Ringkasan Kondisi Ekonomi',
+    nama_usaha: 'Nama Usaha',
+    jenis_usaha: 'Jenis Usaha',
+    alamat_usaha: 'Alamat Usaha',
+    tahun_berdiri: 'Tahun Berdiri',
   };
   const hiddenDataKeys = new Set(['formulirPermohonan', 'suratPengantarRtRw']);
   const templateFieldNames = Array.isArray(templateFields) ? templateFields.map((f) => f.name) : [];
@@ -139,8 +131,6 @@ export default function AdminPermohonanDetail() {
         labelView: item.label || item.nama || `Persyaratan ${idx + 1}`,
         fileNameView: item.file_name || item.original_name || null,
         noteView: item.note || item.catatan || '',
-        verificationStatusView: item.verification_status || item.verifikasi_status || 'pending',
-        verificationNoteView: item.verification_note || item.verifikasi_catatan || '',
       }))
     : [];
 
@@ -249,36 +239,6 @@ export default function AdminPermohonanDetail() {
                           <span className="text-slate-400">Belum ada file</span>
                         )}
                         {item.noteView && <p className="text-xs text-slate-500 mt-1">{item.noteView}</p>}
-                        <div className="mt-2 flex flex-wrap items-center gap-2">
-                          <span className={`text-xs px-2 py-1 rounded-full ${item.verificationStatusView === 'valid' ? 'bg-emerald-100 text-emerald-700' : item.verificationStatusView === 'tidak_valid' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
-                            {item.verificationStatusView === 'valid' ? 'Valid' : item.verificationStatusView === 'tidak_valid' ? 'Tidak Valid' : 'Pending'}
-                          </span>
-                          {p.status === 'menunggu' && item.file_url && (
-                            <>
-                              <button onClick={() => verifikasiLampiran(idx, 'valid')} disabled={acting} className="btn-primary text-xs px-3 py-1">
-                                Valid
-                              </button>
-                              <button onClick={() => verifikasiLampiran(idx, 'tidak_valid')} disabled={acting} className="btn-danger text-xs px-3 py-1">
-                                Tidak Valid
-                              </button>
-                              <button onClick={() => verifikasiLampiran(idx, 'pending')} disabled={acting} className="btn-secondary text-xs px-3 py-1">
-                                Reset
-                              </button>
-                            </>
-                          )}
-                        </div>
-                        {p.status === 'menunggu' && item.file_url && (
-                          <textarea
-                            className="input mt-2"
-                            rows="2"
-                            placeholder="Catatan verifikasi lampiran (opsional)"
-                            value={catatanLampiran[idx] ?? item.verificationNoteView ?? ''}
-                            onChange={(e) => setCatatanLampiran((s) => ({ ...s, [idx]: e.target.value }))}
-                          />
-                        )}
-                        {item.verificationNoteView && (
-                          <p className="text-xs text-slate-600 mt-2">Catatan admin: {item.verificationNoteView}</p>
-                        )}
                       </div>
                     </div>
                   </div>

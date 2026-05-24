@@ -70,22 +70,33 @@ async function generate(permohonan) {
   // Data template, warga, dan admin dikirim dari routes/admin.js.
   const { template, warga, admin } = permohonan;
 
-  // data_tambahan kadang dikembalikan sebagai string JSON oleh MySQL
-  let data_tambahan = permohonan.data_tambahan || {};
-  if (typeof data_tambahan === 'string') {
-    try { data_tambahan = JSON.parse(data_tambahan); } catch { data_tambahan = {}; }
+  // data_form berisi jawaban form dinamis (JSON)
+  let data_form = permohonan.data_form || permohonan.data_tambahan || {};
+  if (typeof data_form === 'string') {
+    try { data_form = JSON.parse(data_form); } catch { data_form = {}; }
   }
 
-  // 1. Load template HTML
-  // Contoh file template: templates/domisili.html.
-  const tplPath = path.join(TEMPLATE_DIR, template.file_template);
+  // 1. Load template HTML (universal)
+  const tplPath = path.join(TEMPLATE_DIR, template.file_template || 'universal.html');
   let html = await fs.readFile(tplPath, 'utf8');
   const ttdImageHtml = await buildTtdImageHtml(admin?.ttd_image);
 
-  // 2. Build variabel
-  // Variabel ini akan menggantikan placeholder di HTML.
-  // Contoh placeholder di template: {{NAMA}}, {{NIK}}, {{NOMOR_SURAT}}.
-  const vars = {
+  // 2. Generate baris tambahan dari fields template
+  let fields = template.fields || [];
+  if (typeof fields === 'string') {
+    try { fields = JSON.parse(fields); } catch { fields = []; }
+  }
+  const normalizedFields = Array.isArray(fields)
+    ? fields.map((f) => ({ ...f, name: f.name || f.key })).filter((f) => f.name)
+    : [];
+
+  const extraRows = normalizedFields.map((field) => {
+    const value = data_form?.[field.name] ?? '-';
+    return `<tr><td class="label">${field.label || field.name}</td><td class="sep">:</td><td>${value}</td></tr>`;
+  }).join('');
+
+  // 3. Build variabel (tanpa kalimat penutup dulu)
+  const baseVars = {
     // Identitas RT/RW (dari env)
     RT_NOMOR: process.env.RT_NOMOR || '02',
     RW_NOMOR: process.env.RW_NOMOR || '03',
@@ -95,9 +106,11 @@ async function generate(permohonan) {
     PROVINSI: process.env.PROVINSI || 'Jawa Timur',
 
     // Data surat
+    NAMA_SURAT: (template.nama || 'Surat Keterangan').toUpperCase(),
     NOMOR_SURAT: permohonan.nomor_surat || '-',
     TANGGAL_TERBIT: formatTanggalID(permohonan.tanggal_approve || new Date()),
     KEPERLUAN: permohonan.keperluan || '-',
+    EXTRA_ROWS: extraRows,
 
     // Data warga
     NAMA: warga.nama_lengkap || '-',
@@ -117,10 +130,19 @@ async function generate(permohonan) {
     ADMIN_JABATAN: admin?.jabatan || '-',
     ADMIN_TTD_IMG: ttdImageHtml,
 
-    // Data tambahan dari template
+    // Data tambahan dari template (data_form)
     ...Object.fromEntries(
-      Object.entries(data_tambahan).map(([k, v]) => [k.toUpperCase(), v])
+      Object.entries(data_form).map(([k, v]) => [String(k).toUpperCase(), v])
     ),
+  };
+
+  const defaultPenutup = `Adalah benar warga RT ${process.env.RT_NOMOR || ''} RW ${process.env.RW_NOMOR || ''} Desa ${process.env.KELURAHAN || ''}, Kecamatan ${process.env.KECAMATAN || ''}, Kabupaten ${process.env.KOTA || ''} yang berdomisili di alamat tersebut di atas. Surat ini dibuat untuk keperluan ${permohonan.keperluan || '-'} .`;
+  const penutupTemplate = template.kalimat_penutup || defaultPenutup;
+  const penutupFinal = fillTemplate(penutupTemplate, baseVars);
+
+  const vars = {
+    ...baseVars,
+    KALIMAT_PENUTUP: penutupFinal,
   };
 
   // 3. Replace placeholder

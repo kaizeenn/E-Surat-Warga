@@ -24,9 +24,11 @@ async function findByKode(kode, { activeOnly = false } = {}) {
 }
 
 async function create(data) {
+  const fields = data.fields ? JSON.stringify(data.fields) : '[]';
+  const kalimatPenutup = data.kalimat_penutup || null;
   const [result] = await db.query(
-    'INSERT INTO template_surat (kode, nama, deskripsi, file_template, aktif, created_at, updated_at) VALUES (?, ?, ?, ?, ?, NOW(), NOW())',
-    [data.kode.toUpperCase(), data.nama, data.deskripsi || null, data.file_template, data.aktif !== undefined ? data.aktif : true]
+    'INSERT INTO template_surat (kode, nama, deskripsi, file_template, fields, kalimat_penutup, aktif, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())',
+    [data.kode.toUpperCase(), data.nama, data.deskripsi || null, data.file_template, fields, kalimatPenutup, data.aktif !== undefined ? data.aktif : true]
   );
   return findById(result.insertId);
 }

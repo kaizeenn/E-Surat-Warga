@@ -148,7 +148,9 @@ surat-warga/
 
 ## Struktur Database
 
-Database dibuat sederhana dan tidak menyimpan data dinamis dalam JSON.
+Database memakai desain **Hybrid**:
+- Field dinamis disimpan dalam JSON agar form bisa fleksibel.
+- Lampiran KTP/KK tetap kolom eksplisit supaya bisa diverifikasi per file.
 
 Tabel utama:
 
@@ -195,6 +197,9 @@ Menyimpan jenis surat yang tersedia, misalnya:
 - TIDAK_MAMPU
 - USAHA
 
+Kolom penting:
+- `fields` (JSON) untuk definisi form dinamis (name, label, type, required).
+
 #### `permohonan_surat`
 
 Menyimpan data pengajuan surat warga, seperti:
@@ -202,9 +207,7 @@ Menyimpan data pengajuan surat warga, seperti:
 - warga yang mengajukan
 - jenis surat
 - keperluan
-- nomor KK
-- keterangan sesuai jenis surat
-- nama usaha, jenis usaha, alamat usaha, dan tahun berdiri untuk Surat Keterangan Usaha
+- `data_form` (JSON) berisi isian form dinamis sesuai template
 - file KTP
 - file KK
 - status verifikasi KTP

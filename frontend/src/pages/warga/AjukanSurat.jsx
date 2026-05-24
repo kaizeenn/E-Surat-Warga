@@ -20,7 +20,9 @@ export default function AjukanSurat() {
       const data = res.data.data.map((t) => {
         const fieldsRaw = typeof t.fields === 'string' ? JSON.parse(t.fields) : (t.fields || []);
         const persyaratanRaw = typeof t.persyaratan === 'string' ? JSON.parse(t.persyaratan) : (t.persyaratan || []);
-        const fields = fieldsRaw.filter((f) => !['formulirPermohonan', 'suratPengantarRtRw'].includes(f.name));
+        const fields = fieldsRaw
+          .map((f) => ({ ...f, name: f.name || f.key, key: f.key || f.name }))
+          .filter((f) => f.name && !['formulirPermohonan', 'suratPengantarRtRw'].includes(f.name));
         const persyaratan = persyaratanRaw
           .map((item, idx) => ({
             key: item.key || `persyaratan_${idx + 1}`,

@@ -49,6 +49,14 @@ export default function PermohonanDetail() {
     jenisUsaha: 'Jenis Usaha',
     alamatUsaha: 'Alamat Usaha',
     tahunBerdiri: 'Tahun Berdiri',
+    tujuan_instansi: 'Tujuan Instansi/Pihak',
+    tujuan_penggunaan: 'Tujuan Penggunaan Surat',
+    nomor_kk: 'Nomor KK',
+    kondisi_ekonomi: 'Ringkasan Kondisi Ekonomi',
+    nama_usaha: 'Nama Usaha',
+    jenis_usaha: 'Jenis Usaha',
+    alamat_usaha: 'Alamat Usaha',
+    tahun_berdiri: 'Tahun Berdiri',
   };
   const hiddenDataKeys = new Set(['formulirPermohonan', 'suratPengantarRtRw']);
   const templateFieldNames = Array.isArray(templateFields) ? templateFields.map((f) => f.name) : [];
@@ -69,31 +77,17 @@ export default function PermohonanDetail() {
         labelView: item.label || item.nama || `Persyaratan ${idx + 1}`,
         fileNameView: item.file_name || item.original_name || null,
         noteView: item.note || item.catatan || '',
-        verificationStatusView: item.verification_status || item.verifikasi_status || 'pending',
-        verificationNoteView: item.verification_note || item.verifikasi_catatan || '',
         requiredView: item.required ?? item.wajib ?? false,
       }))
     : [];
 
   const adaLampiran = Array.isArray(lampiranPersyaratan) && lampiranPersyaratan.length > 0;
-  const adaDitolak = adaLampiran && lampiranPersyaratan.some((item) => item.verificationStatusView === 'tidak_valid');
-  const semuaValid = adaLampiran && lampiranPersyaratan.every((item) => !item.requiredView || item.verificationStatusView === 'valid');
-  const ringkasanLampiran = !adaLampiran
-    ? null
-    : adaDitolak
-      ? {
-          text: 'Ada lampiran yang ditolak. Silakan cek catatan admin pada berkas terkait.',
-          className: 'bg-red-50 border-red-200 text-red-800',
-        }
-      : semuaValid
-        ? {
-            text: 'Semua lampiran persyaratan sudah valid.',
-            className: 'bg-emerald-50 border-emerald-200 text-emerald-800',
-          }
-        : {
-            text: 'Sebagian lampiran masih menunggu verifikasi admin.',
-            className: 'bg-amber-50 border-amber-200 text-amber-800',
-          };
+  const ringkasanLampiran = adaLampiran
+    ? {
+        text: 'Lampiran KTP dan KK sudah terunggah. Admin akan memeriksa kelengkapan berkas.',
+        className: 'bg-slate-50 border-slate-200 text-slate-700',
+      }
+    : null;
 
   return (
     <WargaLayout>
@@ -175,9 +169,6 @@ export default function PermohonanDetail() {
                         </div>
 
                         {item.noteView && <p className="text-xs text-slate-500 mt-2">Persyaratan: {item.noteView}</p>}
-                        {item.verificationNoteView && (
-                          <p className="text-xs text-slate-600 mt-2">Catatan admin: {item.verificationNoteView}</p>
-                        )}
                       </div>
                     </div>
                   </div>

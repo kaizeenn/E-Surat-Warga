@@ -12,6 +12,28 @@ const FIELD_TYPES = [
   { value: 'date', label: 'Date' },
 ];
 
+const PLACEHOLDERS = [
+  { label: 'Nama Warga', value: '{{NAMA}}' },
+  { label: 'Keperluan', value: '{{KEPERLUAN}}' },
+  { label: 'No. RT', value: '{{RT_NOMOR}}' },
+  { label: 'No. RW', value: '{{RW_NOMOR}}' },
+  { label: 'Kelurahan', value: '{{KELURAHAN}}' },
+  { label: 'Kecamatan', value: '{{KECAMATAN}}' },
+  { label: 'Kota', value: '{{KOTA}}' },
+  { label: 'Tanggal Terbit', value: '{{TANGGAL_TERBIT}}' },
+];
+
+const SAMPLE_DATA = {
+  '{{NAMA}}': 'Andi Wijaya',
+  '{{KEPERLUAN}}': 'melamar pekerjaan',
+  '{{RT_NOMOR}}': '02',
+  '{{RW_NOMOR}}': '03',
+  '{{KELURAHAN}}': 'Saronggi',
+  '{{KECAMATAN}}': 'Saronggi',
+  '{{KOTA}}': 'Sumenep',
+  '{{TANGGAL_TERBIT}}': '6 Mei 2025',
+};
+
 const emptyField = () => ({ name: '', label: '', type: 'text', required: true });
 
 export default function TemplateForm() {
@@ -24,12 +46,50 @@ export default function TemplateForm() {
     nama: '',
     deskripsi: '',
     file_template: '',
+    kalimat_penutup: '',
     aktif: true,
     fields: [emptyField()],
   });
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [insertedPlaceholder, setInsertedPlaceholder] = useState(null);
+
+  const insertPlaceholder = (placeholder) => {
+    const textarea = document.getElementById('kalimat-penutup');
+    if (!textarea) return;
+    
+    textarea.focus();
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const before = form.kalimat_penutup.slice(0, start);
+    const after = form.kalimat_penutup.slice(end);
+    const needSpaceBefore = before.length > 0 && !/\s$/.test(before);
+    const needSpaceAfter = after.length > 0 && !/^\s/.test(after);
+    const insert = (needSpaceBefore ? ' ' : '') + placeholder + (needSpaceAfter ? ' ' : '');
+    const newValue = before + insert + after;
+    
+    setForm({ ...form, kalimat_penutup: newValue });
+    setInsertedPlaceholder(placeholder);
+    setTimeout(() => setInsertedPlaceholder(null), 600);
+    
+    setTimeout(() => {
+      textarea.selectionStart = textarea.selectionEnd = start + insert.length;
+    }, 0);
+  };
+
+  const getPreviewHtml = () => {
+    const raw = form.kalimat_penutup.trim();
+    if (!raw) return '<span style="color: rgb(148 163 184)">Tulis kalimat penutup untuk melihat preview...</span>';
+    
+    let html = raw;
+    Object.entries(SAMPLE_DATA).forEach(([ph, value]) => {
+      const regex = new RegExp(ph.replace(/[{}]/g, '\\$&'), 'g');
+      html = html.replace(regex, `<span style="background-color: rgb(209 250 229); color: rgb(5 122 85); font-weight: 500; padding: 1px 5px; border-radius: 3px;">${value}</span>`);
+    });
+    
+    return html;
+  };
 
   useEffect(() => {
     api.get('/admin/template/files')
@@ -49,6 +109,7 @@ export default function TemplateForm() {
             nama: t.nama,
             deskripsi: t.deskripsi || '',
             file_template: t.file_template,
+            kalimat_penutup: t.kalimat_penutup || '',
             aktif: t.aktif,
             fields: Array.isArray(fields) && fields.length ? fields : [emptyField()],
           });
@@ -124,10 +185,10 @@ export default function TemplateForm() {
         </h1>
       </div>
 
-      <form onSubmit={submit} className="space-y-6 max-w-3xl">
+      <form onSubmit={submit} className="space-y-6 max-w-4xl">
         {/* Info dasar */}
         <div className="card">
-          <h2 className="font-semibold mb-4">Informasi Dasar</h2>
+          <h2 className="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-4">Informasi Dasar</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1">
@@ -187,7 +248,7 @@ export default function TemplateForm() {
                 ))}
               </select>
               <p className="text-xs text-slate-400 mt-1">
-                File harus ada di <code>backend/src/templates/</code>
+                File harus ada di <code>backend/templates/</code>. Gunakan <code>universal.html</code> agar admin tidak perlu menulis HTML.
               </p>
             </div>
             <div className="flex items-end">
@@ -205,92 +266,146 @@ export default function TemplateForm() {
           </div>
         </div>
 
-        {/* Field tambahan */}
+        {/* Kalimat Penutup */}
         <div className="card">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="font-semibold">Field Tambahan</h2>
-              <p className="text-xs text-slate-500">
-                Field yang harus diisi warga saat ajukan surat (di luar data identitas).
-              </p>
-            </div>
-            <button type="button" onClick={addField} className="btn-secondary text-sm">
-              <Icon name="plus" className="w-4 h-4 mr-1" /> Tambah Field
-            </button>
-          </div>
-
-          <div className="space-y-3">
-            {form.fields.map((f, idx) => (
-              <div key={idx} className="border border-slate-200 rounded-lg p-3 bg-slate-50">
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-end">
-                  <div className="md:col-span-3">
-                    <label className="block text-xs font-medium text-slate-600 mb-1">
-                      Name (kode)
-                    </label>
-                    <input
-                      value={f.name}
-                      onChange={(e) => updateField(idx, 'name', e.target.value)}
-                      className="input font-mono text-sm"
-                      placeholder="tujuanInstansi"
-                    />
-                  </div>
-                  <div className="md:col-span-4">
-                    <label className="block text-xs font-medium text-slate-600 mb-1">Label</label>
-                    <input
-                      value={f.label}
-                      onChange={(e) => updateField(idx, 'label', e.target.value)}
-                      className="input text-sm"
-                      placeholder="Tujuan Instansi"
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-xs font-medium text-slate-600 mb-1">Tipe</label>
-                    <select
-                      value={f.type}
-                      onChange={(e) => updateField(idx, 'type', e.target.value)}
-                      className="input text-sm"
-                    >
-                      {FIELD_TYPES.map((t) => (
-                        <option key={t.value} value={t.value}>{t.label}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="md:col-span-2 flex items-center pb-2">
-                    <label className="inline-flex items-center gap-1.5 text-sm">
-                      <input
-                        type="checkbox"
-                        checked={!!f.required}
-                        onChange={(e) => updateField(idx, 'required', e.target.checked)}
-                        className="w-4 h-4 rounded"
-                      />
-                      Wajib
-                    </label>
-                  </div>
-                  <div className="md:col-span-1 flex justify-end pb-1">
-                    <button
-                      type="button"
-                      onClick={() => removeField(idx)}
-                      className="text-red-600 hover:bg-red-50 p-2 rounded"
-                      title="Hapus field"
-                    >
-                      <Icon name="x" className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              </div>
+          <h2 className="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-4">Kalimat Penutup Surat</h2>
+          <p className="text-xs text-slate-500 mb-3">Klik placeholder di bawah untuk sisipkan ke posisi kursor:</p>
+          
+          {/* Placeholder chips */}
+          <div className="flex flex-wrap gap-2 mb-4">
+            {PLACEHOLDERS.map((ph) => (
+              <button
+                key={ph.value}
+                type="button"
+                onClick={() => insertPlaceholder(ph.value)}
+                className={`text-xs px-2.5 py-1.5 rounded-full border transition-all font-medium ${
+                  insertedPlaceholder === ph.value
+                    ? 'bg-emerald-100 text-emerald-700 border-emerald-300'
+                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:border-slate-300 cursor-pointer'
+                }`}
+              >
+                {ph.label}
+              </button>
             ))}
           </div>
 
-          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-start gap-2 text-sm text-blue-900">
-            <Icon name="info" className="w-5 h-5 shrink-0 mt-0.5" />
+          {/* Textarea */}
+          <textarea
+            id="kalimat-penutup"
+            name="kalimat_penutup"
+            value={form.kalimat_penutup}
+            onChange={onChange}
+            rows="4"
+            className="input mb-3 font-[inherit]"
+            placeholder="Contoh: Adalah benar warga RT {{RT_NOMOR}} RW {{RW_NOMOR}} Desa {{KELURAHAN}}... untuk keperluan {{KEPERLUAN}}."
+          />
+
+          {/* Preview */}
+          <div>
+            <p className="text-xs font-medium text-slate-600 mb-2">Preview (simulasi dengan data contoh):</p>
+            <div 
+              className="bg-slate-50 border border-slate-200 rounded-lg p-4 text-sm leading-relaxed text-slate-900 min-h-12"
+              dangerouslySetInnerHTML={{ __html: getPreviewHtml() }}
+            />
+          </div>
+
+          <p className="text-xs text-slate-500 mt-3 italic py-2 px-3 bg-slate-50 border-l-2 border-slate-300 rounded">
+            Catatan: Kalimat "Demikian surat keterangan ini dibuat dengan sebenarnya untuk dapat dipergunakan sebagaimana mestinya." akan ditambahkan otomatis di akhir.
+          </p>
+        </div>
+
+        {/* Field tambahan */}
+        <div className="card">
+          <div className="flex items-start justify-between mb-5">
             <div>
-              <p className="font-medium">Catatan field name</p>
-              <p>
-                Gunakan camelCase (contoh: <code>tujuanInstansi</code>). Sistem akan otomatis
-                mengubah jadi UPPERCASE saat replace placeholder di HTML template
-                (contoh: <code>{'{{TUJUANINSTANSI}}'}</code>).
+              <h2 className="text-sm font-semibold text-slate-600 uppercase tracking-wide">Data Tambahan per Surat</h2>
+              <p className="text-xs text-slate-500 mt-1">
+                Nama, NIK, alamat warga sudah otomatis terisi. Tambahkan hanya data spesifik untuk surat ini.
               </p>
             </div>
+            <button 
+              type="button" 
+              onClick={addField} 
+              className="btn-secondary text-sm inline-flex items-center gap-1.5 flex-shrink-0"
+            >
+              <Icon name="plus" className="w-4 h-4" /> Tambah
+            </button>
+          </div>
+
+          {form.fields.length > 0 && (
+            <div className="space-y-2">
+              {form.fields.map((f, idx) => (
+                <div key={idx} className="bg-slate-50 border border-slate-200 rounded-lg p-3">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-2 items-center">
+                    {/* Name */}
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-600 mb-1">Name</label>
+                      <input
+                        value={f.name}
+                        onChange={(e) => updateField(idx, 'name', e.target.value)}
+                        className="input text-xs font-mono placeholder-slate-400"
+                        placeholder="namaUsaha"
+                      />
+                    </div>
+                    {/* Label */}
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-600 mb-1">Label</label>
+                      <input
+                        value={f.label}
+                        onChange={(e) => updateField(idx, 'label', e.target.value)}
+                        className="input text-xs placeholder-slate-400"
+                        placeholder="Nama Usaha"
+                      />
+                    </div>
+                    {/* Type & Required */}
+                    <div className="flex gap-2">
+                      <div className="flex-1">
+                        <label className="block text-xs font-semibold text-slate-600 mb-1">Tipe</label>
+                        <select
+                          value={f.type}
+                          onChange={(e) => updateField(idx, 'type', e.target.value)}
+                          className="input text-xs"
+                        >
+                          {FIELD_TYPES.map((t) => (
+                            <option key={t.value} value={t.value}>{t.label}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="flex items-end">
+                        <label className="inline-flex items-center gap-1.5 text-xs select-none">
+                          <input
+                            type="checkbox"
+                            checked={!!f.required}
+                            onChange={(e) => updateField(idx, 'required', e.target.checked)}
+                            className="w-3.5 h-3.5 rounded"
+                          />
+                          <span>Wajib</span>
+                        </label>
+                      </div>
+                    </div>
+                    {/* Delete */}
+                    <div className="flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() => removeField(idx)}
+                        className="text-slate-400 hover:text-red-600 p-2 hover:bg-red-50 rounded transition"
+                        title="Hapus field"
+                      >
+                        <Icon name="trash" className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-900">
+            <p className="font-medium mb-1">💡 Nama field</p>
+            <p>
+              Gunakan camelCase (contoh: <code className="text-blue-700 font-mono">namaUsaha</code>, <code className="text-blue-700 font-mono">tujuanInstansi</code>). 
+              Sistem otomatis ubah jadi UPPERCASE saat render PDF (menjadi <code className="text-blue-700 font-mono">{'{{NAMAUSAHA}}'}</code>).
+            </p>
           </div>
         </div>
 

@@ -37,6 +37,11 @@ CREATE TABLE IF NOT EXISTS template_surat (
   nama VARCHAR(100) NOT NULL,
   deskripsi TEXT NULL,
   file_template VARCHAR(100) NOT NULL,
+  -- Solusi 3 (Hybrid): definisi field dinamis dalam JSON
+  -- Format: [{ name, label, type, required, placeholder, maxLength, options }, ...]
+  -- type: text, textarea, date, number, select, email
+  fields JSON NOT NULL DEFAULT '[]',
+  kalimat_penutup TEXT NULL,
   aktif BOOLEAN NOT NULL DEFAULT true,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -50,28 +55,14 @@ CREATE TABLE IF NOT EXISTS permohonan_surat (
   nomor_surat VARCHAR(50) NULL,
   keperluan TEXT NOT NULL,
 
-  -- Kolom keterangan yang memang dipakai oleh jenis surat.
-  nomor_kk VARCHAR(30) NULL,
-  tujuan_instansi VARCHAR(150) NULL,
-  tujuan_penggunaan VARCHAR(150) NULL,
-  kondisi_ekonomi TEXT NULL,
-  nama_usaha VARCHAR(120) NULL,
-  jenis_usaha VARCHAR(120) NULL,
-  alamat_usaha TEXT NULL,
-  tahun_berdiri VARCHAR(4) NULL,
+  -- Solusi 3 (Hybrid): jawaban form isian dalam JSON
+  -- Key-value pair sesuai field.key dari template
+  -- Contoh: { "tujuan_instansi": "PT. Maju", "nomor_kk": "3578..." }
+  data_form JSON NOT NULL DEFAULT '{}',
 
-  -- File persyaratan utama dari warga.
+  -- File persyaratan utama - tetap eksplisit karena butuh verifikasi per file
   file_ktp VARCHAR(255) NULL,
-  status_ktp ENUM('pending','valid','tidak_valid') NOT NULL DEFAULT 'pending',
-  catatan_ktp TEXT NULL,
-  verified_ktp_by INT NULL,
-  verified_ktp_at DATETIME NULL,
-
   file_kk VARCHAR(255) NULL,
-  status_kk ENUM('pending','valid','tidak_valid') NOT NULL DEFAULT 'pending',
-  catatan_kk TEXT NULL,
-  verified_kk_by INT NULL,
-  verified_kk_at DATETIME NULL,
 
   status ENUM('menunggu','diproses','selesai','ditolak') NOT NULL DEFAULT 'menunggu',
   catatan_admin TEXT NULL,
@@ -82,8 +73,6 @@ CREATE TABLE IF NOT EXISTS permohonan_surat (
   CONSTRAINT fk_permohonan_warga FOREIGN KEY (warga_id) REFERENCES warga(id) ON DELETE CASCADE,
   CONSTRAINT fk_permohonan_template FOREIGN KEY (template_id) REFERENCES template_surat(id) ON DELETE CASCADE,
   CONSTRAINT fk_permohonan_admin FOREIGN KEY (admin_id) REFERENCES admin(id) ON DELETE SET NULL,
-  CONSTRAINT fk_permohonan_verified_ktp FOREIGN KEY (verified_ktp_by) REFERENCES admin(id) ON DELETE SET NULL,
-  CONSTRAINT fk_permohonan_verified_kk FOREIGN KEY (verified_kk_by) REFERENCES admin(id) ON DELETE SET NULL,
   KEY idx_permohonan_warga (warga_id),
   KEY idx_permohonan_template (template_id),
   KEY idx_permohonan_admin (admin_id)
@@ -99,18 +88,28 @@ CREATE TABLE IF NOT EXISTS nomor_surat (
   UNIQUE KEY uq_nomor_surat_periode (tahun, bulan)
 ) ENGINE=InnoDB;
 
--- Bersihkan tabel tambahan lama jika pernah dibuat.
+-- Bersihkan tabel tambahan lama jika pernah dibuat
 DROP TABLE IF EXISTS permohonan_lampiran;
 DROP TABLE IF EXISTS permohonan_data;
 DROP TABLE IF EXISTS template_persyaratan;
 DROP TABLE IF EXISTS template_field;
 
--- Bersihkan kolom JSON lama jika pernah ada.
+-- Bersihkan kolom lama jika ada
 ALTER TABLE template_surat
-  DROP COLUMN IF EXISTS fields,
   DROP COLUMN IF EXISTS persyaratan;
 
+ALTER TABLE template_surat
+  ADD COLUMN IF NOT EXISTS kalimat_penutup TEXT NULL;
+
 ALTER TABLE permohonan_surat
+  DROP COLUMN IF EXISTS nomor_kk,
+  DROP COLUMN IF EXISTS tujuan_instansi,
+  DROP COLUMN IF EXISTS tujuan_penggunaan,
+  DROP COLUMN IF EXISTS kondisi_ekonomi,
+  DROP COLUMN IF EXISTS nama_usaha,
+  DROP COLUMN IF EXISTS jenis_usaha,
+  DROP COLUMN IF EXISTS alamat_usaha,
+  DROP COLUMN IF EXISTS tahun_berdiri,
   DROP COLUMN IF EXISTS data_tambahan,
   DROP COLUMN IF EXISTS lampiran_persyaratan,
   DROP COLUMN IF EXISTS file_ktp_name,
@@ -118,35 +117,54 @@ ALTER TABLE permohonan_surat
   DROP COLUMN IF EXISTS file_ktp_size,
   DROP COLUMN IF EXISTS file_kk_name,
   DROP COLUMN IF EXISTS file_kk_mime,
-  DROP COLUMN IF EXISTS file_kk_size;
+  DROP COLUMN IF EXISTS file_kk_size,
+  DROP COLUMN IF EXISTS status_ktp,
+  DROP COLUMN IF EXISTS status_kk,
+  DROP COLUMN IF EXISTS catatan_ktp,
+  DROP COLUMN IF EXISTS verified_ktp_by,
+  DROP COLUMN IF EXISTS verified_ktp_at,
+  DROP COLUMN IF EXISTS catatan_kk,
+  DROP COLUMN IF EXISTS verified_kk_by,
+  DROP COLUMN IF EXISTS verified_kk_at;
 
--- Tambahkan kolom baru jika database sudah terlanjur dibuat sebelumnya.
+-- Tambahkan kolom baru jika belum ada (untuk update database existing)
+ALTER TABLE template_surat
+  ADD COLUMN IF NOT EXISTS fields JSON NOT NULL DEFAULT '[]',
+  ADD COLUMN IF NOT EXISTS kalimat_penutup TEXT NULL;
+
 ALTER TABLE permohonan_surat
-  ADD COLUMN IF NOT EXISTS nomor_kk VARCHAR(30) NULL AFTER keperluan,
-  ADD COLUMN IF NOT EXISTS tujuan_instansi VARCHAR(150) NULL AFTER nomor_kk,
-  ADD COLUMN IF NOT EXISTS tujuan_penggunaan VARCHAR(150) NULL AFTER tujuan_instansi,
-  ADD COLUMN IF NOT EXISTS kondisi_ekonomi TEXT NULL AFTER tujuan_penggunaan,
-  ADD COLUMN IF NOT EXISTS nama_usaha VARCHAR(120) NULL AFTER kondisi_ekonomi,
-  ADD COLUMN IF NOT EXISTS jenis_usaha VARCHAR(120) NULL AFTER nama_usaha,
-  ADD COLUMN IF NOT EXISTS alamat_usaha TEXT NULL AFTER jenis_usaha,
-  ADD COLUMN IF NOT EXISTS tahun_berdiri VARCHAR(4) NULL AFTER alamat_usaha,
-  ADD COLUMN IF NOT EXISTS file_ktp VARCHAR(255) NULL AFTER tahun_berdiri,
-  ADD COLUMN IF NOT EXISTS status_ktp ENUM('pending','valid','tidak_valid') NOT NULL DEFAULT 'pending' AFTER file_ktp,
-  ADD COLUMN IF NOT EXISTS catatan_ktp TEXT NULL AFTER status_ktp,
-  ADD COLUMN IF NOT EXISTS verified_ktp_by INT NULL AFTER catatan_ktp,
-  ADD COLUMN IF NOT EXISTS verified_ktp_at DATETIME NULL AFTER verified_ktp_by,
-  ADD COLUMN IF NOT EXISTS file_kk VARCHAR(255) NULL AFTER verified_ktp_at,
-  ADD COLUMN IF NOT EXISTS status_kk ENUM('pending','valid','tidak_valid') NOT NULL DEFAULT 'pending' AFTER file_kk,
-  ADD COLUMN IF NOT EXISTS catatan_kk TEXT NULL AFTER status_kk,
-  ADD COLUMN IF NOT EXISTS verified_kk_by INT NULL AFTER catatan_kk,
-  ADD COLUMN IF NOT EXISTS verified_kk_at DATETIME NULL AFTER verified_kk_by;
+  ADD COLUMN IF NOT EXISTS data_form JSON NOT NULL DEFAULT '{}' AFTER keperluan;
 
+-- Insert admin default
 INSERT INTO admin (nama_lengkap, email, password, jabatan, no_hp, aktif, created_at, updated_at)
 VALUES ('Atmin Sistem', 'atmin@rtrw.local', '$2a$10$/MLULYSMGodJ2p/MmJM/e.Vlz4UijNDK1/JXnvWs4IPu7Odfnkqg2', 'Ketua RT', '081234567890', true, NOW(), NOW())
 ON DUPLICATE KEY UPDATE nama_lengkap = VALUES(nama_lengkap), jabatan = VALUES(jabatan), no_hp = VALUES(no_hp), aktif = VALUES(aktif);
 
-INSERT INTO template_surat (id, kode, nama, deskripsi, file_template, aktif, created_at, updated_at) VALUES
-(1, 'DOMISILI', 'Surat Keterangan Domisili', 'Bukti tempat tinggal warga di wilayah desa/RT/RW.', 'domisili.html', true, NOW(), NOW()),
-(2, 'TIDAK_MAMPU', 'Surat Keterangan Tidak Mampu', 'Untuk keringanan biaya pendidikan, kesehatan, atau bantuan sosial.', 'tidak_mampu.html', true, NOW(), NOW()),
-(3, 'USAHA', 'Surat Keterangan Usaha', 'Bukti kepemilikan usaha warga di wilayah desa/RT/RW.', 'usaha.html', true, NOW(), NOW())
-ON DUPLICATE KEY UPDATE nama = VALUES(nama), deskripsi = VALUES(deskripsi), file_template = VALUES(file_template), aktif = VALUES(aktif);
+-- Insert template surat dengan field definitions
+INSERT INTO template_surat (id, kode, nama, deskripsi, file_template, fields, kalimat_penutup, aktif, created_at, updated_at) VALUES
+(1, 'DOMISILI', 'Surat Keterangan Domisili', 'Bukti tempat tinggal warga di wilayah desa/RT/RW.', 'universal.html', 
+  JSON_ARRAY(
+    JSON_OBJECT('name', 'nomor_kk', 'label', 'Nomor Kartu Keluarga', 'type', 'text', 'required', true, 'placeholder', 'contoh: 3275XXXXXXXXXXXX', 'maxLength', 16),
+    JSON_OBJECT('name', 'tujuan_instansi', 'label', 'Tujuan Instansi/Pihak', 'type', 'text', 'required', true, 'placeholder', 'contoh: PT. Maju Bersama')
+  ),
+  'Adalah benar warga RT {{RT_NOMOR}} RW {{RW_NOMOR}} Desa {{KELURAHAN}}, Kecamatan {{KECAMATAN}}, Kabupaten {{KOTA}}, yang berdomisili di alamat tersebut di atas. Surat ini dibuat untuk keperluan <b>{{KEPERLUAN}}</b>.',
+  true, NOW(), NOW()),
+(2, 'TIDAK_MAMPU', 'Surat Keterangan Tidak Mampu', 'Untuk keringanan biaya pendidikan, kesehatan, atau bantuan sosial.', 'universal.html',
+  JSON_ARRAY(
+    JSON_OBJECT('name', 'nomor_kk', 'label', 'Nomor Kartu Keluarga', 'type', 'text', 'required', true, 'maxLength', 16),
+    JSON_OBJECT('name', 'tujuan_penggunaan', 'label', 'Tujuan Penggunaan Surat', 'type', 'text', 'required', true, 'placeholder', 'contoh: Beasiswa pendidikan'),
+    JSON_OBJECT('name', 'kondisi_ekonomi', 'label', 'Ringkasan Kondisi Ekonomi', 'type', 'textarea', 'required', true, 'placeholder', 'Jelaskan kondisi ekonomi singkat')
+  ),
+  'Adalah benar warga RT {{RT_NOMOR}} RW {{RW_NOMOR}} Desa {{KELURAHAN}}, Kecamatan {{KECAMATAN}}, Kabupaten {{KOTA}}, dan berdasarkan pengamatan kami yang bersangkutan tergolong keluarga <b>kurang mampu</b> secara ekonomi. Surat ini dibuat untuk keperluan <b>{{KEPERLUAN}}</b>.',
+  true, NOW(), NOW()),
+(3, 'USAHA', 'Surat Keterangan Usaha', 'Bukti kepemilikan usaha warga di wilayah desa/RT/RW.', 'universal.html',
+  JSON_ARRAY(
+    JSON_OBJECT('name', 'nomor_kk', 'label', 'Nomor Kartu Keluarga', 'type', 'text', 'required', true, 'maxLength', 16),
+    JSON_OBJECT('name', 'nama_usaha', 'label', 'Nama Usaha', 'type', 'text', 'required', true, 'placeholder', 'contoh: Toko Elektronik Jaya'),
+    JSON_OBJECT('name', 'jenis_usaha', 'label', 'Jenis Usaha', 'type', 'text', 'required', true, 'placeholder', 'contoh: Ritel Elektronik'),
+    JSON_OBJECT('name', 'alamat_usaha', 'label', 'Alamat Usaha', 'type', 'textarea', 'required', true, 'placeholder', 'Alamat lengkap usaha'),
+    JSON_OBJECT('name', 'tahun_berdiri', 'label', 'Tahun Berdiri', 'type', 'number', 'required', true, 'placeholder', 'contoh: 2020')
+  ),
+  'Adalah benar yang bersangkutan memiliki dan menjalankan usaha sebagaimana data di atas di wilayah RT {{RT_NOMOR}} RW {{RW_NOMOR}} Desa {{KELURAHAN}}, Kecamatan {{KECAMATAN}}, Kabupaten {{KOTA}}. Surat ini dibuat untuk keperluan <b>{{KEPERLUAN}}</b>.',
+  true, NOW(), NOW())
+ON DUPLICATE KEY UPDATE nama = VALUES(nama), deskripsi = VALUES(deskripsi), file_template = VALUES(file_template), fields = VALUES(fields), kalimat_penutup = VALUES(kalimat_penutup), aktif = VALUES(aktif);

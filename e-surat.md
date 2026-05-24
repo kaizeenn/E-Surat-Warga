@@ -87,11 +87,9 @@ surat-warga/
 │   │   └── schema.sql               # Struktur tabel dan data awal database
 │   ├── services/
 │   │   └── pdfGenerator.js          # Logic generate PDF dengan Puppeteer
-│   ├── templates/                   # Template HTML tiap jenis surat
+│   ├── templates/                   # Template HTML universal
 │   │   ├── _kop.html
-│   │   ├── domisili.html
-│   │   ├── tidak_mampu.html
-│   │   └── usaha.html
+│   │   └── universal.html
 │   ├── uploads/
 │   │   ├── persyaratan/
 │   │   ├── surat/
@@ -323,8 +321,14 @@ yang relevan untuk operasional admin.
 | kode | VARCHAR(30) | Kode unik, misal: `DOMISILI` |
 | nama | VARCHAR(100) | Nama jenis surat |
 | deskripsi | TEXT | Penjelasan kegunaan surat |
-| file_template | VARCHAR(100) | Nama file HTML template |
+| file_template | VARCHAR(100) | Nama file HTML template (universal.html) |
+| fields | JSON | Definisi form dinamis (name, label, type, required) |
+| kalimat_penutup | TEXT | Teks penutup surat (bisa pakai placeholder) |
 | aktif | BOOLEAN | Apakah jenis surat ini aktif |
+
+Catatan:
+- Semua jenis surat memakai `universal.html`.
+- Admin cukup mengisi **fields** dan **kalimat_penutup** lewat dashboard.
 
 ### Tabel `permohonan_surat`
 
@@ -336,28 +340,21 @@ yang relevan untuk operasional admin.
 | admin_id | INT (FK, NULL) | FK ke `admin.id` — admin yang approve/tolak (NULL saat masih `menunggu`) |
 | nomor_surat | VARCHAR(50) | Nomor surat (diisi saat approve) |
 | keperluan | TEXT | Tujuan pembuatan surat |
-| nomor_kk | VARCHAR(30) | Nomor KK pemohon |
-| tujuan_instansi | VARCHAR(150) | Tujuan surat domisili |
-| tujuan_penggunaan | VARCHAR(150) | Tujuan penggunaan SKTM |
-| kondisi_ekonomi | TEXT | Keterangan kondisi ekonomi untuk SKTM |
-| nama_usaha | VARCHAR(120) | Nama usaha untuk SKU |
-| jenis_usaha | VARCHAR(120) | Jenis usaha untuk SKU |
-| alamat_usaha | TEXT | Alamat usaha untuk SKU |
-| tahun_berdiri | VARCHAR(4) | Tahun berdiri usaha untuk SKU |
+| data_form | JSON | Isian form dinamis sesuai template |
 | file_ktp | VARCHAR(255) | Path file KTP warga |
 | file_kk | VARCHAR(255) | Path file KK warga |
 | status_ktp | ENUM | `pending`, `valid`, `tidak_valid` |
 | status_kk | ENUM | `pending`, `valid`, `tidak_valid` |
-| catatan_ktp | TEXT | Catatan verifikasi KTP |
-| catatan_kk | TEXT | Catatan verifikasi KK |
 | status | ENUM | `menunggu`, `diproses`, `selesai`, `ditolak` |
 | catatan_admin | TEXT | Catatan dari admin (opsional) |
 | file_pdf | VARCHAR(255) | Path file PDF hasil generate |
 | tanggal_approve | DATETIME | Waktu diapprove admin |
 | created_at | DATETIME | Waktu permohonan masuk |
 
-> Struktur dibuat sederhana: data penting pengajuan langsung disimpan di tabel `permohonan_surat`.
-> Tidak ada kolom JSON dan tidak ada tabel tambahan untuk field/lampiran.
+> Struktur dibuat sederhana dengan **Hybrid JSON**:
+> - `data_form` menyimpan isian dinamis sesuai template.
+> - KTP/KK tetap kolom eksplisit supaya bisa diverifikasi per file.
+> - Verifikasi lampiran hanya menggunakan `status_ktp` dan `status_kk`.
 
 ### Tabel `nomor_surat`
 
@@ -660,7 +657,12 @@ async function generateSuratPDF(templateFile, data) {
 module.exports = { generateSuratPDF };
 ```
 
-Contoh template `backend/templates/domisili.html`:
+Catatan penting (sistem universal):
+- `template.file_template` diarahkan ke `universal.html`.
+- `EXTRA_ROWS` dibuat dari `template.fields` + `data_form` warga.
+- `KALIMAT_PENUTUP` diambil dari `template.kalimat_penutup`.
+
+Contoh template `backend/templates/universal.html`:
 
 ```html
 <!DOCTYPE html>
@@ -680,36 +682,38 @@ Contoh template `backend/templates/domisili.html`:
 </head>
 <body>
   <div class="kop">
-    <h2>PEMERINTAH KOTA {{KOTA}}</h2>
-    <p>KECAMATAN {{KECAMATAN}} — KELURAHAN {{KELURAHAN}}</p>
-    <p>RT {{RT_NOMOR}} / RW {{RW_NOMOR}} — Kode Pos {{KODE_POS}}</p>
+    <h2>PEMERINTAH KABUPATEN {{KOTA}}</h2>
+    <p>KECAMATAN {{KECAMATAN}} — DESA {{KELURAHAN}}</p>
+    <p>RT {{RT_NOMOR}} / RW {{RW_NOMOR}}</p>
   </div>
 
   <div class="nomor">
-    <strong>SURAT KETERANGAN DOMISILI</strong><br>
+    <strong>{{NAMA_SURAT}}</strong><br>
     Nomor: {{NOMOR_SURAT}}
   </div>
 
   <p>Yang bertanda tangan di bawah ini, Ketua RT {{RT_NOMOR}} RW {{RW_NOMOR}}
-  Kelurahan {{KELURAHAN}}, menerangkan bahwa:</p>
+  Desa {{KELURAHAN}}, menerangkan bahwa:</p>
 
   <table class="isi">
-    <tr><td>Nama Lengkap</td><td>:</td><td><strong>{{NAMA_LENGKAP}}</strong></td></tr>
+    <tr><td>Nama Lengkap</td><td>:</td><td><strong>{{NAMA}}</strong></td></tr>
     <tr><td>NIK</td><td>:</td><td>{{NIK}}</td></tr>
-    <tr><td>Tempat / Tgl. Lahir</td><td>:</td><td>{{TEMPAT_LAHIR}}, {{TANGGAL_LAHIR}}</td></tr>
+    <tr><td>Tempat / Tgl. Lahir</td><td>:</td><td>{{TTL}}</td></tr>
     <tr><td>Jenis Kelamin</td><td>:</td><td>{{JENIS_KELAMIN}}</td></tr>
     <tr><td>Agama</td><td>:</td><td>{{AGAMA}}</td></tr>
     <tr><td>Pekerjaan</td><td>:</td><td>{{PEKERJAAN}}</td></tr>
     <tr><td>Alamat</td><td>:</td><td>{{ALAMAT}}</td></tr>
+    {{EXTRA_ROWS}}
   </table>
 
-  <p>Adalah benar warga RT {{RT_NOMOR}} RW {{RW_NOMOR}} Kelurahan {{KELURAHAN}}
-  dan berdomisili di alamat tersebut di atas. Surat keterangan ini dibuat untuk
-  keperluan <strong>{{KEPERLUAN}}</strong>.</p>
+  <div class="penutup">
+    <p>{{KALIMAT_PENUTUP}}</p>
+    <p>Demikian surat keterangan ini dibuat dengan sebenarnya untuk dapat dipergunakan sebagaimana mestinya.</p>
+  </div>
 
   <div class="ttd">
     <p>{{KOTA}}, {{TANGGAL_TERBIT}}</p>
-    <p>Ketua RT {{RT_NOMOR}}</p>
+    <p>{{ADMIN_JABATAN}}</p>
     <br><br><br>
     <p><strong><u>{{NAMA_ADMIN}}</u></strong></p>
   </div>
