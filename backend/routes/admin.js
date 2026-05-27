@@ -131,6 +131,57 @@ async function getNextUrutan(conn, tahun, bulan) {
 // Semua endpoint admin wajib login sebagai admin.
 router.use(authAdmin);
 
+// POST /api/admin/template/preview
+// Generate PDF preview dari draft template (tanpa menyimpan ke DB)
+router.post('/template/preview', async (req, res, next) => {
+  try {
+    const { nama, file_template, kalimat_penutup, fields } = req.body || {};
+    if (!nama || !file_template) {
+      return res.status(400).json({ success: false, message: 'nama dan file_template wajib diisi untuk preview' });
+    }
+
+    const normalizedFields = normalizeFields(parseJson(fields, []));
+    const sampleDataForm = Object.fromEntries(
+      normalizedFields.map((f, idx) => [f.name, f.type === 'number' ? 2024 : `Contoh ${f.label || f.name || idx + 1}`])
+    );
+
+    const permohonanPreview = {
+      id: `preview-${Date.now()}`,
+      nomor_surat: '470/XXX/RT02/RW03/2026',
+      keperluan: 'keperluan administrasi',
+      tanggal_approve: new Date(),
+      data_form: sampleDataForm,
+      template: {
+        nama,
+        file_template,
+        kalimat_penutup: kalimat_penutup || null,
+        fields: normalizedFields,
+      },
+      warga: {
+        nama_lengkap: 'Contoh Warga',
+        nik: '3510000000000001',
+        tempat_lahir: 'Sumenep',
+        tanggal_lahir: '1998-01-01',
+        jenis_kelamin: 'laki-laki',
+        agama: 'Islam',
+        pekerjaan: 'Wiraswasta',
+        alamat: 'Jl. Contoh No. 1',
+        no_hp: '081234567890',
+      },
+      admin: {
+        nama_lengkap: req.user.nama_lengkap || 'Admin',
+        jabatan: req.user.jabatan || 'Ketua RT',
+        ttd_image: req.user.ttd_image || null,
+      },
+    };
+
+    const pdfPath = await pdfService.generate(permohonanPreview);
+    res.json({ success: true, message: 'Preview PDF berhasil dibuat', data: { file_pdf: pdfPath } });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // GET /api/admin/permohonan
 // Menampilkan semua permohonan dari warga.
 router.get('/permohonan', async (req, res, next) => {

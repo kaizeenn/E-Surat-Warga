@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import api from '../../services/api';
+import api, { API_URL } from '../../services/api';
 import AdminLayout from './AdminLayout';
 import Icon from '../../components/Icon';
 
@@ -54,6 +54,8 @@ export default function TemplateForm() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [insertedPlaceholder, setInsertedPlaceholder] = useState(null);
+  const [previewPdfUrl, setPreviewPdfUrl] = useState('');
+  const [previewLoading, setPreviewLoading] = useState(false);
 
   const insertPlaceholder = (placeholder) => {
     const textarea = document.getElementById('kalimat-penutup');
@@ -134,6 +136,32 @@ export default function TemplateForm() {
   const removeField = (idx) => {
     const next = form.fields.filter((_, i) => i !== idx);
     setForm({ ...form, fields: next.length ? next : [emptyField()] });
+  };
+
+  const buildPreviewPayload = () => ({
+    nama: form.nama,
+    file_template: form.file_template,
+    kalimat_penutup: form.kalimat_penutup,
+    fields: form.fields,
+  });
+
+  const generatePreviewPdf = async () => {
+    if (!form.nama || !form.file_template) {
+      toast.error('Isi nama surat dan file template dulu untuk preview PDF');
+      return;
+    }
+
+    setPreviewLoading(true);
+    try {
+      const res = await api.post('/admin/template/preview', buildPreviewPayload());
+      const fileBase = API_URL.replace(/\/api\/?$/, '');
+      setPreviewPdfUrl(`${fileBase}${res.data.data.file_pdf}`);
+      toast.success('Preview PDF berhasil dibuat');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Gagal generate preview PDF');
+    } finally {
+      setPreviewLoading(false);
+    }
   };
 
   const submit = async (e) => {
@@ -312,6 +340,39 @@ export default function TemplateForm() {
           <p className="text-xs text-slate-500 mt-3 italic py-2 px-3 bg-slate-50 border-l-2 border-slate-300 rounded">
             Catatan: Kalimat "Demikian surat keterangan ini dibuat dengan sebenarnya untuk dapat dipergunakan sebagaimana mestinya." akan ditambahkan otomatis di akhir.
           </p>
+        </div>
+
+        {/* Preview PDF */}
+        <div className="card">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
+            <div>
+              <h2 className="text-sm font-semibold text-slate-600 uppercase tracking-wide">Preview Hasil PDF</h2>
+              <p className="text-xs text-slate-500 mt-1">Generate contoh PDF dari draft template agar admin tahu hasil akhir surat.</p>
+            </div>
+            <button
+              type="button"
+              onClick={generatePreviewPdf}
+              disabled={previewLoading}
+              className="btn-secondary text-sm disabled:opacity-60"
+            >
+              <Icon name="eye" className="w-4 h-4 mr-1" />
+              {previewLoading ? 'Generating...' : 'Generate Preview PDF'}
+            </button>
+          </div>
+
+          {previewPdfUrl ? (
+            <div className="rounded-2xl border border-slate-200 overflow-hidden">
+              <iframe
+                title="Preview PDF Template"
+                src={previewPdfUrl}
+                className="w-full h-[640px] bg-slate-50"
+              />
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center text-sm text-slate-500">
+              Belum ada preview. Klik tombol <b>Generate Preview PDF</b>.
+            </div>
+          )}
         </div>
 
         {/* Field tambahan */}

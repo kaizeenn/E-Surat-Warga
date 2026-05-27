@@ -37,9 +37,6 @@ CREATE TABLE IF NOT EXISTS template_surat (
   nama VARCHAR(100) NOT NULL,
   deskripsi TEXT NULL,
   file_template VARCHAR(100) NOT NULL,
-  -- Solusi 3 (Hybrid): definisi field dinamis dalam JSON
-  -- Format: [{ name, label, type, required, placeholder, maxLength, options }, ...]
-  -- type: text, textarea, date, number, select, email
   fields JSON NOT NULL DEFAULT '[]',
   kalimat_penutup TEXT NULL,
   aktif BOOLEAN NOT NULL DEFAULT true,

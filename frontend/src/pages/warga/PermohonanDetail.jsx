@@ -103,11 +103,9 @@ export default function PermohonanDetail() {
           {ringkasanLampiran && (
             <div className={`card border ${ringkasanLampiran.className}`}>
               <div className="flex items-start gap-3">
-                <Icon name={adaDitolak ? 'alert' : semuaValid ? 'check' : 'clock'} className="w-5 h-5 shrink-0 mt-0.5" />
+                <Icon name="clock" className="w-5 h-5 shrink-0 mt-0.5" />
                 <div>
-                  <h3 className="font-semibold">
-                    {adaDitolak ? 'Status Lampiran Perlu Perbaikan' : semuaValid ? 'Status Lampiran Lengkap' : 'Status Lampiran Diproses'}
-                  </h3>
+                  <h3 className="font-semibold">Status Lampiran</h3>
                   <p className="text-sm mt-1">{ringkasanLampiran.text}</p>
                 </div>
               </div>
@@ -161,12 +159,6 @@ export default function PermohonanDetail() {
                         ) : (
                           <span className="text-slate-400">Belum ada file</span>
                         )}
-
-                        <div className="mt-2">
-                          <span className={`text-xs px-2 py-1 rounded-full ${item.verificationStatusView === 'valid' ? 'bg-emerald-100 text-emerald-700' : item.verificationStatusView === 'tidak_valid' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
-                            {item.verificationStatusView === 'valid' ? 'Valid' : item.verificationStatusView === 'tidak_valid' ? 'Tidak Valid' : 'Menunggu Verifikasi'}
-                          </span>
-                        </div>
 
                         {item.noteView && <p className="text-xs text-slate-500 mt-2">Persyaratan: {item.noteView}</p>}
                       </div>

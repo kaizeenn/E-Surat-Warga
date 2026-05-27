@@ -14,6 +14,7 @@ export default function AjukanSurat() {
   const [persyaratanFiles, setPersyaratanFiles] = useState({});
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
+  const [previewFile, setPreviewFile] = useState(null);
 
   useEffect(() => {
     api.get('/surat/template').then((res) => {
@@ -51,6 +52,9 @@ export default function AjukanSurat() {
     const requiredFilesFilled = selected.persyaratan?.every((p, idx) => !p.required || persyaratanFiles[`persyaratan_${idx}`]);
     return keperluan.trim() && requiredFieldsFilled && requiredFilesFilled;
   }, [selected, dataTambahan, persyaratanFiles, keperluan]);
+
+  const isImageFile = (file) => file && String(file.type || '').startsWith('image/');
+  const getObjectUrl = (file) => (file ? URL.createObjectURL(file) : '');
 
   const submit = async () => {
     setLoading(true);
@@ -326,14 +330,24 @@ export default function AjukanSurat() {
                 <div className="space-y-2">
                   {selected.persyaratan.map((item, idx) => {
                     const field = `persyaratan_${idx}`;
+                    const file = persyaratanFiles[field];
                     return (
                       <div key={field} className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm">
-                        <div className="min-w-0">
+                        <div className="min-w-0 flex-1">
                           <p className="font-semibold text-slate-800">{item.label}</p>
-                          <p className="truncate text-slate-500">{persyaratanFiles[field]?.name || 'Belum dipilih'}</p>
+                          <p className="truncate text-slate-500">{file?.name || 'Belum dipilih'}</p>
+                          {file && isImageFile(file) && (
+                            <button
+                              type="button"
+                              className="mt-2 inline-flex items-center text-xs font-medium text-warga-700 hover:underline"
+                              onClick={() => setPreviewFile({ name: file.name, url: getObjectUrl(file) })}
+                            >
+                              <Icon name="eye" className="w-3.5 h-3.5 mr-1" /> Preview foto
+                            </button>
+                          )}
                         </div>
-                        <span className={`rounded-full px-3 py-1 text-xs font-semibold ${persyaratanFiles[field] ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
-                          {persyaratanFiles[field] ? 'Siap' : 'Kosong'}
+                        <span className={`rounded-full px-3 py-1 text-xs font-semibold ${file ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+                          {file ? 'Siap' : 'Kosong'}
                         </span>
                       </div>
                     );
@@ -365,6 +379,22 @@ export default function AjukanSurat() {
               </button>
             </div>
           </aside>
+        </div>
+      )}
+
+      {previewFile && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4" onClick={() => setPreviewFile(null)}>
+          <div className="w-full max-w-3xl rounded-2xl bg-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+              <h3 className="font-semibold text-slate-900 truncate">Preview: {previewFile.name}</h3>
+              <button type="button" className="rounded-lg p-2 text-slate-500 hover:bg-slate-100" onClick={() => setPreviewFile(null)}>
+                <Icon name="x" className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-4">
+              <img src={previewFile.url} alt={previewFile.name} className="max-h-[70vh] w-full rounded-xl object-contain bg-slate-50" />
+            </div>
+          </div>
         </div>
       )}
     </WargaLayout>
